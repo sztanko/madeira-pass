@@ -68,6 +68,21 @@ export function markRoutePaid(routeId: string): void {
 }
 
 /**
+ * Unmark a route as paid
+ */
+export function unmarkRoutePaid(routeId: string): void {
+  const paidRoutes = getPaidRoutes();
+
+  // Remove the entry for this route
+  const filteredRoutes = paidRoutes.filter(route => route.routeId !== routeId);
+
+  // Save to cookie
+  const expires = getMidnightExpiration();
+  const value = encodeURIComponent(JSON.stringify(filteredRoutes));
+  document.cookie = `${COOKIE_NAME}=${value}; expires=${expires.toUTCString()}; path=/`;
+}
+
+/**
  * Clear all paid routes (useful for testing)
  */
 export function clearPaidRoutes(): void {

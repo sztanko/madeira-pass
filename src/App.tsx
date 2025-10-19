@@ -3,7 +3,7 @@ import Map from './components/Map';
 import InfoPanel from './components/InfoPanel';
 import { RouteCollection, RouteFeature, UserLocation, InfoPanelState, NearbyRoute } from './types';
 import { getCurrentLocation, watchLocation, clearLocationWatch, isInMadeira } from './utils/geolocation';
-import { getPaidRoutes, markRoutePaid, isRoutePaid } from './utils/cookies';
+import { getPaidRoutes, markRoutePaid, unmarkRoutePaid, isRoutePaid } from './utils/cookies';
 import { distanceToGeometry } from './utils/distance';
 import './App.css';
 
@@ -22,7 +22,7 @@ function App() {
 
   // Load routes from GeoJSON
   useEffect(() => {
-    fetch('/madeira_hiking/data/paid_routes.geojson')
+    fetch('/madeira-pass/data/paid_routes.geojson')
       .then(res => {
         if (!res.ok) {
           throw new Error(`Failed to load routes: ${res.status} ${res.statusText}`);
@@ -141,6 +141,12 @@ function App() {
     setPaidRouteIds(paid.map(r => r.routeId));
   }, []);
 
+  const handleUnmarkPaid = useCallback((routeId: string) => {
+    unmarkRoutePaid(routeId);
+    const paid = getPaidRoutes();
+    setPaidRouteIds(paid.map(r => r.routeId));
+  }, []);
+
   const handleBuyPass = useCallback((routeId: string) => {
     // Redirect to Madeira payment portal
     window.open('https://simplifica.madeira.gov.pt/services/78-82-259', '_blank');
@@ -168,6 +174,7 @@ function App() {
         state={infoPanelState}
         onClose={handleClosePanel}
         onMarkPaid={handleMarkPaid}
+        onUnmarkPaid={handleUnmarkPaid}
         onBuyPass={handleBuyPass}
         onNavigate={handleMenuNavigation}
         isRoutePaid={isRoutePaid}

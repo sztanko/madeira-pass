@@ -4,6 +4,7 @@ interface InfoPanelProps {
   state: InfoPanelState;
   onClose: () => void;
   onMarkPaid: (routeId: string) => void;
+  onUnmarkPaid: (routeId: string) => void;
   onBuyPass: (routeId: string) => void;
   onNavigate: (view: InfoPanelState['view']) => void;
   isRoutePaid: (routeId: string) => boolean;
@@ -13,6 +14,7 @@ export default function InfoPanel({
   state,
   onClose,
   onMarkPaid,
+  onUnmarkPaid,
   onBuyPass,
   onNavigate,
   isRoutePaid
@@ -116,30 +118,44 @@ export default function InfoPanel({
         </div>
 
         <div className="button-group">
-          <button
-            className="btn-primary"
-            onClick={() => {
-              if (window.confirm('Are you sure you have already paid for this route today?')) {
-                onMarkPaid(routeId);
-              }
-            }}
-            disabled={isPaid}
-          >
-            {isPaid ? 'Already Marked as Paid' : 'Mark as Already Paid for Today'}
-          </button>
+          {isPaid ? (
+            <button
+              className="btn-secondary"
+              onClick={() => {
+                if (window.confirm('Are you sure you want to unmark this route as paid? This might have been marked by mistake.')) {
+                  onUnmarkPaid(routeId);
+                }
+              }}
+            >
+              Unmark as Paid
+            </button>
+          ) : (
+            <>
+              <button
+                className="btn-primary"
+                onClick={() => {
+                  if (window.confirm('Are you sure you have already paid for this route today?')) {
+                    onMarkPaid(routeId);
+                  }
+                }}
+              >
+                Mark as Already Paid for Today
+              </button>
 
-          <button
-            className="btn-secondary"
-            onClick={() => {
-              if (window.confirm(
-                'You will be redirected to the Madeira payment portal. After completing the payment, please return here and mark the route as paid.'
-              )) {
-                onBuyPass(routeId);
-              }
-            }}
-          >
-            Buy Pass for Today
-          </button>
+              <button
+                className="btn-secondary"
+                onClick={() => {
+                  if (window.confirm(
+                    'You will be redirected to the Madeira payment portal. After completing the payment, please return here and mark the route as paid.'
+                  )) {
+                    onBuyPass(routeId);
+                  }
+                }}
+              >
+                Buy Pass for Today
+              </button>
+            </>
+          )}
         </div>
       </div>
     );
