@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import Map from './components/Map';
 import InfoPanel from './components/InfoPanel';
-import { RouteCollection, RouteFeature, UserLocation, InfoPanelState, NearbyRoute } from './types';
-import { getCurrentLocation, watchLocation, clearLocationWatch, isInMadeira } from './utils/geolocation';
+import { RouteCollection, UserLocation, InfoPanelState, NearbyRoute } from './types';
+import { getCurrentLocation, watchLocation, clearLocationWatch } from './utils/geolocation';
 import { getPaidRoutes, markRoutePaid, unmarkRoutePaid, isRoutePaid } from './utils/cookies';
 import { distanceToGeometry } from './utils/distance';
 import './App.css';
@@ -18,7 +18,7 @@ function App() {
     isOpen: false,
     view: 'main'
   });
-  const [watchId, setWatchId] = useState<number | null>(null);
+  const [_watchId, setWatchId] = useState<number | null>(null);
 
   // Load routes from GeoJSON
   useEffect(() => {
@@ -147,7 +147,7 @@ function App() {
     setPaidRouteIds(paid.map(r => r.routeId));
   }, []);
 
-  const handleBuyPass = useCallback((routeId: string) => {
+  const handleBuyPass = useCallback((_routeId: string) => {
     // Redirect to Madeira payment portal
     window.open('https://simplifica.madeira.gov.pt/services/78-82-259', '_blank');
   }, []);
