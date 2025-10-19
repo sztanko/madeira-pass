@@ -138,7 +138,19 @@ export default function Map({ userLocation, routes, paidRoutes, selectedRouteId,
           data: routes
         });
 
-        // Single routes layer with data-driven styling
+        // Invisible wider layer for easier tapping on mobile
+        map.addLayer({
+          id: 'routes-layer-hitarea',
+          type: 'line',
+          source: 'routes',
+          paint: {
+            'line-color': 'transparent',
+            'line-width': 20, // Wide tap target (20px)
+            'line-opacity': 0
+          }
+        });
+
+        // Visible routes layer with data-driven styling
         map.addLayer({
           id: 'routes-layer',
           type: 'line',
@@ -160,7 +172,7 @@ export default function Map({ userLocation, routes, paidRoutes, selectedRouteId,
               5, // Selected: thicker
               3  // Normal: standard width
             ],
-            'line-opacity': 1 // Full opacity for debugging
+            'line-opacity': 1
           }
         });
 
@@ -169,16 +181,17 @@ export default function Map({ userLocation, routes, paidRoutes, selectedRouteId,
 
         // Check if layer is queryable
         setTimeout(() => {
-          const features = map.queryRenderedFeatures({ layers: ['routes-layer'] });
-          console.log('Queryable features on routes-layer:', features.length);
+          const features = map.queryRenderedFeatures({ layers: ['routes-layer-hitarea', 'routes-layer'] });
+          console.log('Queryable features on routes layers:', features.length);
           if (features.length === 0) {
-            console.warn('⚠️ No features rendered on routes-layer! Routes might be outside viewport or have rendering issue');
+            console.warn('⚠️ No features rendered on routes layers! Routes might be outside viewport or have rendering issue');
           }
         }, 1000);
 
         // Add click handler on map (check if clicked on route or not)
         map.on('click', (e) => {
-          const features = map.queryRenderedFeatures(e.point, { layers: ['routes-layer'] });
+          // Query both the hit area and visible layer for better tap detection
+          const features = map.queryRenderedFeatures(e.point, { layers: ['routes-layer-hitarea', 'routes-layer'] });
 
           if (features.length > 0) {
             // Clicked on a route
@@ -224,11 +237,11 @@ export default function Map({ userLocation, routes, paidRoutes, selectedRouteId,
           }
         });
 
-        // Change cursor on hover
-        map.on('mouseenter', 'routes-layer', () => {
+        // Change cursor on hover (use hit area for better detection)
+        map.on('mouseenter', 'routes-layer-hitarea', () => {
           map.getCanvas().style.cursor = 'pointer';
         });
-        map.on('mouseleave', 'routes-layer', () => {
+        map.on('mouseleave', 'routes-layer-hitarea', () => {
           map.getCanvas().style.cursor = '';
         });
       }
