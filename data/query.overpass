@@ -1,0 +1,11 @@
+[out:json][timeout:180];
+{{geocodeArea:Região Autónoma da Madeira}}->.a;
+
+// 1) Get all hiking route RELATIONS in the area
+rel(area.a)["type"="route"]["route"="hiking"]->.r;
+
+// 2) Pull ALL members: ways and their nodes (two-level recurse)
+(.r; .r>>;);
+
+// 3) Return full elements (tags + geometry-ready)
+out body;
