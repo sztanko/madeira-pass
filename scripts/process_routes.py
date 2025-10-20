@@ -96,6 +96,73 @@ def extract_paid_refs(paid_routes_info):
     return paid_refs
 
 
+def merge_route_segments(features):
+    """
+    Merge route segments with the same reference into single features.
+
+    Args:
+        features: List of route features
+
+    Returns:
+        List of merged features with combined geometries
+    """
+    # Group features by normalized ref
+    routes_by_ref = {}
+
+    for feature in features:
+        ref = feature['properties'].get('ref', '')
+        normalized_ref = normalize_ref(ref)
+
+        if normalized_ref not in routes_by_ref:
+            routes_by_ref[normalized_ref] = []
+        routes_by_ref[normalized_ref].append(feature)
+
+    merged_features = []
+
+    for ref, segments in routes_by_ref.items():
+        # Find the segment with the most complete properties (has name)
+        best_properties = None
+        for segment in segments:
+            props = segment['properties']
+            if props.get('name') and props.get('name') != 'N/A':
+                best_properties = props
+                break
+
+        # Fallback to first segment if none have names
+        if best_properties is None:
+            best_properties = segments[0]['properties']
+
+        # Collect all line geometries
+        all_coordinates = []
+        for segment in segments:
+            geom = segment['geometry']
+            if geom['type'] == 'LineString':
+                all_coordinates.append(geom['coordinates'])
+            elif geom['type'] == 'MultiLineString':
+                all_coordinates.extend(geom['coordinates'])
+
+        # Create merged feature
+        merged_geometry = {
+            'type': 'MultiLineString' if len(all_coordinates) > 1 else 'LineString',
+            'coordinates': all_coordinates if len(all_coordinates) > 1 else all_coordinates[0]
+        }
+
+        merged_feature = {
+            'type': 'Feature',
+            'properties': {
+                **best_properties,
+                'id': ref,  # Use normalized ref as ID
+                'requiresPayment': True
+            },
+            'geometry': merged_geometry
+        }
+
+        merged_features.append(merged_feature)
+        print(f"  ✓ Merged {len(segments)} segment(s) for {ref}: {best_properties.get('name', 'N/A')}")
+
+    return merged_features
+
+
 def filter_paid_routes(all_routes, paid_routes_info):
     """
     Filter routes that require payment.
@@ -111,7 +178,7 @@ def filter_paid_routes(all_routes, paid_routes_info):
     paid_refs = extract_paid_refs(paid_routes_info)
     print(f"\nTotal unique paid routes from API: {len(paid_refs)}")
 
-    paid_features = []
+    matched_features = []
     matched_refs = set()
 
     # Filter routes from GeoJSON
@@ -130,19 +197,11 @@ def filter_paid_routes(all_routes, paid_routes_info):
         normalized_ref = normalize_ref(ref)
 
         if normalized_ref in paid_refs:
-            # Add the route ID and payment requirement to properties
-            feature_copy = {
-                'type': feature['type'],
-                'properties': {
-                    **properties,
-                    'id': normalized_ref,
-                    'requiresPayment': True
-                },
-                'geometry': feature['geometry']
-            }
-            paid_features.append(feature_copy)
+            matched_features.append(feature)
             matched_refs.add(normalized_ref)
-            print(f"  ✓ Matched: {normalized_ref} - {properties.get('name', 'N/A')}")
+
+    print(f"\nMerging route segments...")
+    merged_features = merge_route_segments(matched_features)
 
     # Report unmatched routes
     unmatched = paid_refs - matched_refs
@@ -153,7 +212,7 @@ def filter_paid_routes(all_routes, paid_routes_info):
 
     return {
         "type": "FeatureCollection",
-        "features": paid_features
+        "features": merged_features
     }
 
 

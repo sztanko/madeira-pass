@@ -160,10 +160,10 @@ export default function Map({ userLocation, routes, paidRoutes, selectedRouteId,
             'line-color': [
               'case',
               ['==', ['get', 'id'], selectedRouteId || ''],
-              '#4a90e2', // Selected: blue
+              '#fb923c', // Selected: bright orange
               ['in', ['get', 'id'], ['literal', paidRoutes]],
-              '#51cf66', // Paid: green
-              '#ff6b6b'  // Unpaid: red
+              '#14b8a6', // Paid: teal/turquoise
+              '#8b5cf6'  // Unpaid: purple
             ],
             // Width based on selected state
             'line-width': [
@@ -172,7 +172,7 @@ export default function Map({ userLocation, routes, paidRoutes, selectedRouteId,
               5, // Selected: thicker
               3  // Normal: standard width
             ],
-            'line-opacity': 1
+            'line-opacity': 0.9
           }
         });
 
@@ -200,34 +200,7 @@ export default function Map({ userLocation, routes, paidRoutes, selectedRouteId,
             console.log('🎯 Route clicked!', routeId);
 
             if (routeId) {
-              // Find the full route feature from the routes data
-              const fullRoute = routes.features.find(f => f.properties.id === routeId);
-              if (fullRoute) {
-                // Calculate bounds of the route and zoom to it
-                const bounds = new maplibregl.LngLatBounds();
-
-                if (fullRoute.geometry.type === 'LineString') {
-                  fullRoute.geometry.coordinates.forEach((coord) => {
-                    bounds.extend(coord as [number, number]);
-                  });
-                } else if (fullRoute.geometry.type === 'MultiLineString') {
-                  fullRoute.geometry.coordinates.forEach((line) => {
-                    line.forEach((coord) => {
-                      bounds.extend(coord as [number, number]);
-                    });
-                  });
-                }
-
-                // Zoom to route with padding
-                // Calculate bottom padding based on viewport height to account for info panel (60vh)
-                const bottomPadding = window.innerHeight * 0.6 + 50; // 60% for panel + 50px buffer
-                map.fitBounds(bounds, {
-                  padding: { top: 100, bottom: bottomPadding, left: 80, right: 80 },
-                  duration: 800,
-                  maxZoom: 15
-                });
-              }
-
+              // The zoom will be handled by the useEffect that watches selectedRouteId
               onRouteClick(routeId);
             }
           } else {
@@ -267,10 +240,10 @@ export default function Map({ userLocation, routes, paidRoutes, selectedRouteId,
     map.setPaintProperty('routes-layer', 'line-color', [
       'case',
       ['==', ['get', 'id'], selectedRouteId || ''],
-      '#4a90e2', // Selected: blue
+      '#fb923c', // Selected: bright orange
       ['in', ['get', 'id'], ['literal', paidRoutes]],
-      '#51cf66', // Paid: green
-      '#ff6b6b'  // Unpaid: red
+      '#14b8a6', // Paid: teal/turquoise
+      '#8b5cf6'  // Unpaid: purple
     ]);
 
     map.setPaintProperty('routes-layer', 'line-width', [
@@ -280,6 +253,39 @@ export default function Map({ userLocation, routes, paidRoutes, selectedRouteId,
       3  // Normal: standard width
     ]);
   }, [paidRoutes, selectedRouteId]);
+
+  // Zoom to selected route when it changes
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !selectedRouteId || !routes) return;
+
+    // Find the selected route
+    const route = routes.features.find(f => f.properties.id === selectedRouteId);
+    if (!route) return;
+
+    // Calculate bounds of the route
+    const bounds = new maplibregl.LngLatBounds();
+
+    if (route.geometry.type === 'LineString') {
+      route.geometry.coordinates.forEach((coord) => {
+        bounds.extend(coord as [number, number]);
+      });
+    } else if (route.geometry.type === 'MultiLineString') {
+      route.geometry.coordinates.forEach((line) => {
+        line.forEach((coord) => {
+          bounds.extend(coord as [number, number]);
+        });
+      });
+    }
+
+    // Zoom to route with padding
+    const bottomPadding = window.innerHeight * 0.6 + 50; // 60% for panel + 50px buffer
+    map.fitBounds(bounds, {
+      padding: { top: 100, bottom: bottomPadding, left: 80, right: 80 },
+      duration: 800,
+      maxZoom: 15
+    });
+  }, [selectedRouteId, routes]);
 
   // Update user location marker
   useEffect(() => {

@@ -172,11 +172,13 @@ function App() {
       />
       <InfoPanel
         state={infoPanelState}
+        routes={routes?.features || null}
         onClose={handleClosePanel}
         onMarkPaid={handleMarkPaid}
         onUnmarkPaid={handleUnmarkPaid}
         onBuyPass={handleBuyPass}
         onNavigate={handleMenuNavigation}
+        onRouteClick={handleRouteClick}
         isRoutePaid={isRoutePaid}
       />
     </div>

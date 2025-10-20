@@ -2,21 +2,25 @@ import { InfoPanelState, RouteFeature } from '../types';
 
 interface InfoPanelProps {
   state: InfoPanelState;
+  routes: RouteFeature[] | null;
   onClose: () => void;
   onMarkPaid: (routeId: string) => void;
   onUnmarkPaid: (routeId: string) => void;
   onBuyPass: (routeId: string) => void;
   onNavigate: (view: InfoPanelState['view']) => void;
+  onRouteClick: (routeId: string) => void;
   isRoutePaid: (routeId: string) => boolean;
 }
 
 export default function InfoPanel({
   state,
+  routes,
   onClose,
   onMarkPaid,
   onUnmarkPaid,
   onBuyPass,
   onNavigate,
+  onRouteClick,
   isRoutePaid
 }: InfoPanelProps) {
   const renderMainView = () => (
@@ -161,16 +165,118 @@ export default function InfoPanel({
     );
   };
 
-  const renderRoutesList = () => (
-    <div className="info-content">
-      <h2>Routes List</h2>
-      <p>This feature will display a list of all paid hiking routes in Madeira.</p>
-      <p>Coming soon!</p>
-      <button className="btn-secondary" onClick={() => onNavigate('main')}>
-        Back to Menu
-      </button>
-    </div>
-  );
+  const renderRoutesList = () => {
+    if (!routes) {
+      return (
+        <div className="info-content">
+          <h2>Routes List</h2>
+          <p>Loading routes...</p>
+          <button className="btn-secondary" onClick={() => onNavigate('main')}>
+            Back to Menu
+          </button>
+        </div>
+      );
+    }
+
+    // Sort routes by reference code (PR1, PR2, etc.)
+    const sortedRoutes = [...routes].sort((a, b) => {
+      const refA = a.properties.ref || '';
+      const refB = b.properties.ref || '';
+      return refA.localeCompare(refB, undefined, { numeric: true });
+    });
+
+    return (
+      <div className="info-content">
+        <h2>All Hiking Routes</h2>
+        <p style={{ marginBottom: '16px', fontSize: '14px', color: '#666' }}>
+          {routes.length} paid hiking routes in Madeira
+        </p>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
+          {sortedRoutes.map((route) => {
+            const props = route.properties;
+            const isPaid = isRoutePaid(props.id);
+
+            return (
+              <div
+                key={props.id}
+                onClick={() => onRouteClick(props.id)}
+                style={{
+                  padding: '12px',
+                  backgroundColor: isPaid ? '#f0fdfa' : '#faf5ff',
+                  border: `2px solid ${isPaid ? '#14b8a6' : '#8b5cf6'}`,
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateX(4px)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateX(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {props.ref && (
+                      <span style={{
+                        backgroundColor: isPaid ? '#14b8a6' : '#8b5cf6',
+                        color: 'white',
+                        padding: '2px 8px',
+                        borderRadius: '4px',
+                        fontSize: '12px',
+                        fontWeight: '600'
+                      }}>
+                        {props.ref}
+                      </span>
+                    )}
+                    {isPaid && (
+                      <span style={{ fontSize: '16px' }}>✓</span>
+                    )}
+                  </div>
+                  {props.distance && (
+                    <span style={{ fontSize: '13px', color: '#666', fontWeight: '500' }}>
+                      {props.distance} km
+                    </span>
+                  )}
+                </div>
+
+                <div style={{ fontSize: '15px', fontWeight: '600', color: '#333', marginBottom: '6px' }}>
+                  {props.name}
+                </div>
+
+                {(props.from || props.to) && (
+                  <div style={{ fontSize: '13px', color: '#666', marginBottom: '6px' }}>
+                    {props.from || '?'} → {props.to || '?'}
+                  </div>
+                )}
+
+                {props['website:en'] && (
+                  <div style={{ fontSize: '12px', marginTop: '6px' }}>
+                    <a
+                      href={props['website:en']}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      style={{ color: isPaid ? '#14b8a6' : '#8b5cf6', textDecoration: 'none', fontWeight: '500' }}
+                    >
+                      View details →
+                    </a>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        <button className="btn-secondary" onClick={() => onNavigate('main')}>
+          Back to Menu
+        </button>
+      </div>
+    );
+  };
 
   const renderPassInfo = () => (
     <div className="info-content">
