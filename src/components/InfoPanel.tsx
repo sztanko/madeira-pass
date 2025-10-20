@@ -1,8 +1,9 @@
-import { InfoPanelState, RouteFeature } from '../types';
+import { InfoPanelState, RouteFeature, RouteStatusData, RouteStatus } from '../types';
 
 interface InfoPanelProps {
   state: InfoPanelState;
   routes: RouteFeature[] | null;
+  routeStatus: RouteStatusData | null;
   onClose: () => void;
   onMarkPaid: (routeId: string) => void;
   onUnmarkPaid: (routeId: string) => void;
@@ -15,6 +16,7 @@ interface InfoPanelProps {
 export default function InfoPanel({
   state,
   routes,
+  routeStatus,
   onClose,
   onMarkPaid,
   onUnmarkPaid,
@@ -23,6 +25,40 @@ export default function InfoPanel({
   onRouteClick,
   isRoutePaid
 }: InfoPanelProps) {
+
+  // Helper function to get status for a route
+  const getRouteStatus = (routeId: string): RouteStatus | null => {
+    if (!routeStatus) return null;
+    return routeStatus.routes[routeId]?.status || null;
+  };
+
+  // Helper function to render status badge
+  const renderStatusBadge = (status: RouteStatus | null) => {
+    if (!status) return null;
+
+    const statusConfig = {
+      open: { label: 'Open', bgColor: '#d1fae5', color: '#065f46' },
+      closed: { label: 'Closed', bgColor: '#fee2e2', color: '#991b1b' },
+      partially_open: { label: 'Partial', bgColor: '#fef3c7', color: '#92400e' },
+      unknown: { label: 'Unknown', bgColor: '#e5e7eb', color: '#374151' }
+    };
+
+    const config = statusConfig[status];
+
+    return (
+      <span style={{
+        backgroundColor: config.bgColor,
+        color: config.color,
+        padding: '2px 8px',
+        borderRadius: '4px',
+        fontSize: '11px',
+        fontWeight: '600',
+        textTransform: 'uppercase'
+      }}>
+        {config.label}
+      </span>
+    );
+  };
   const renderMainView = () => (
     <div className="info-content">
       <h2>Madeira Hiking</h2>
@@ -40,10 +76,14 @@ export default function InfoPanel({
     const isPaid = isRoutePaid(routeId);
     const isNearby = distance !== undefined && distance <= 50;
     const props = route.properties;
+    const status = getRouteStatus(routeId);
 
     return (
       <div className="info-content route-detail">
-        <h2>{props.name}</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+          <h2 style={{ margin: 0 }}>{props.name}</h2>
+          {renderStatusBadge(status)}
+        </div>
 
         {isNearby && !isPaid && (
           <div className="warning-message">
@@ -196,6 +236,7 @@ export default function InfoPanel({
           {sortedRoutes.map((route) => {
             const props = route.properties;
             const isPaid = isRoutePaid(props.id);
+            const status = getRouteStatus(props.id);
 
             return (
               <div
@@ -219,7 +260,7 @@ export default function InfoPanel({
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                     {props.ref && (
                       <span style={{
                         backgroundColor: isPaid ? '#14b8a6' : '#8b5cf6',
@@ -235,6 +276,7 @@ export default function InfoPanel({
                     {isPaid && (
                       <span style={{ fontSize: '16px' }}>✓</span>
                     )}
+                    {renderStatusBadge(status)}
                   </div>
                   {props.distance && (
                     <span style={{ fontSize: '13px', color: '#666', fontWeight: '500' }}>

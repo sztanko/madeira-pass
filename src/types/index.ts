@@ -55,3 +55,21 @@ export interface InfoPanelState {
   selectedRoute?: RouteFeature;
   nearbyRoute?: NearbyRoute;
 }
+
+export type RouteStatus = 'open' | 'closed' | 'partially_open' | 'unknown';
+
+export interface RouteStatusInfo {
+  id: string;
+  name: string;
+  status: RouteStatus;
+  status_text: string;
+  island: string;
+}
+
+export interface RouteStatusData {
+  last_updated: string;
+  source_url: string;
+  routes: {
+    [key: string]: RouteStatusInfo;
+  };
+}

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Map from './components/Map';
 import InfoPanel from './components/InfoPanel';
-import { RouteCollection, UserLocation, InfoPanelState, NearbyRoute } from './types';
+import { RouteCollection, UserLocation, InfoPanelState, NearbyRoute, RouteStatusData } from './types';
 import { getCurrentLocation, watchLocation, clearLocationWatch } from './utils/geolocation';
 import { getPaidRoutes, markRoutePaid, unmarkRoutePaid, isRoutePaid } from './utils/cookies';
 import { distanceToGeometry } from './utils/distance';
@@ -12,6 +12,7 @@ const PROXIMITY_THRESHOLD = 50; // meters
 function App() {
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [routes, setRoutes] = useState<RouteCollection | null>(null);
+  const [routeStatus, setRouteStatus] = useState<RouteStatusData | null>(null);
   const [paidRouteIds, setPaidRouteIds] = useState<string[]>([]);
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null);
   const [infoPanelState, setInfoPanelState] = useState<InfoPanelState>({
@@ -34,6 +35,22 @@ function App() {
         setRoutes(data);
       })
       .catch(err => console.error('Error loading routes:', err));
+  }, []);
+
+  // Load route status data
+  useEffect(() => {
+    fetch('/madeira-pass/data/route_status.json')
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`Failed to load route status: ${res.status} ${res.statusText}`);
+        }
+        return res.json();
+      })
+      .then(data => {
+        console.log('Route status loaded:', Object.keys(data.routes).length, 'routes');
+        setRouteStatus(data);
+      })
+      .catch(err => console.error('Error loading route status:', err));
   }, []);
 
   // Load paid routes from cookies
@@ -173,6 +190,7 @@ function App() {
       <InfoPanel
         state={infoPanelState}
         routes={routes?.features || null}
+        routeStatus={routeStatus}
         onClose={handleClosePanel}
         onMarkPaid={handleMarkPaid}
         onUnmarkPaid={handleUnmarkPaid}

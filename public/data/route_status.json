@@ -1,0 +1,300 @@
+{
+  "last_updated": "2025-10-20T21:32:00.569589Z",
+  "source_url": "https://ifcn.madeira.gov.pt/pt/atividades-de-natureza/percursos-pedestres-recomendados/percursos-pedestres-recomendados.html",
+  "routes": {
+    "PR1": {
+      "id": "PR1",
+      "name": "Vereda do Areeiro",
+      "status": "partially_open",
+      "status_text": "PARCIALMENTE ABERTO(Transitável desde o Pico do Areeiro até ao Miradouro da Pedra Rija - km 1,2)",
+      "island": "Madeira"
+    },
+    "PR1.1": {
+      "id": "PR1.1",
+      "name": "Vereda da Ilha",
+      "status": "open",
+      "status_text": "ABERTO",
+      "island": "Madeira"
+    },
+    "PR1.2": {
+      "id": "PR1.2",
+      "name": "Vereda do Pico Ruivo",
+      "status": "open",
+      "status_text": "ABERTO",
+      "island": "Madeira"
+    },
+    "PR1.3": {
+      "id": "PR1.3",
+      "name": "Vereda da Encumeada",
+      "status": "closed",
+      "status_text": "ENCERRADO",
+      "island": "Madeira"
+    },
+    "PR2": {
+      "id": "PR2",
+      "name": "Vereda do Urzal",
+      "status": "partially_open",
+      "status_text": "PARCIALMENTE ABERTO(Transitável desde a Boaventura (Lombo do Urzal) até ao km 6,2)",
+      "island": "Madeira"
+    },
+    "PR3": {
+      "id": "PR3",
+      "name": "Vereda do Burro",
+      "status": "open",
+      "status_text": "ABERTO",
+      "island": "Madeira"
+    },
+    "PR3.1": {
+      "id": "PR3.1",
+      "name": "Caminho Real do Monte",
+      "status": "open",
+      "status_text": "ABERTO",
+      "island": "Madeira"
+    },
+    "PR4": {
+      "id": "PR4",
+      "name": "Levada do Barreiro",
+      "status": "partially_open",
+      "status_text": "PARCIALMENTE TRANSITÁVELMAPA",
+      "island": "Madeira"
+    },
+    "PR5": {
+      "id": "PR5",
+      "name": "Vereda das Funduras",
+      "status": "open",
+      "status_text": "ABERTO",
+      "island": "Madeira"
+    },
+    "PR6": {
+      "id": "PR6",
+      "name": "Levada das 25 Fontes",
+      "status": "open",
+      "status_text": "ABERTO(troço unidirecional da Levada das 25 Fontes com circulação controlada num único sentido: Rabaçal – 25 Fontes (ida) pela Levada das 25 Fontes e 25 Fontes – Rabaçal (regresso) pelo troço alternativo, denominado de Bypass.)",
+      "island": "Madeira"
+    },
+    "PR6.1": {
+      "id": "PR6.1",
+      "name": "Levada do Risco",
+      "status": "open",
+      "status_text": "ABERTO",
+      "island": "Madeira"
+    },
+    "PR6.2": {
+      "id": "PR6.2",
+      "name": "Levada do Alecrim",
+      "status": "open",
+      "status_text": "ABERTO",
+      "island": "Madeira"
+    },
+    "PR6.3": {
+      "id": "PR6.3",
+      "name": "Vereda da Lagoa do Vento",
+      "status": "open",
+      "status_text": "ABERTO",
+      "island": "Madeira"
+    },
+    "PR6.4": {
+      "id": "PR6.4",
+      "name": "Levada Velha do Rabaçal",
+      "status": "open",
+      "status_text": "ABERTO",
+      "island": "Madeira"
+    },
+    "PR6.5": {
+      "id": "PR6.5",
+      "name": "Vereda do Pico Fernandes",
+      "status": "open",
+      "status_text": "ABERTO",
+      "island": "Madeira"
+    },
+    "PR6.6": {
+      "id": "PR6.6",
+      "name": "Vereda do Túnel do Cavalo",
+      "status": "open",
+      "status_text": "ABERTO",
+      "island": "Madeira"
+    },
+    "PR6.7": {
+      "id": "PR6.7",
+      "name": "Vereda da Câmara de Carga do Rabaçal",
+      "status": "open",
+      "status_text": "ABERTO",
+      "island": "Madeira"
+    },
+    "PR6.8": {
+      "id": "PR6.8",
+      "name": "Levada do Paul II – Um Caminho para todos",
+      "status": "open",
+      "status_text": "ABERTO",
+      "island": "Madeira"
+    },
+    "PR7": {
+      "id": "PR7",
+      "name": "Levada do Moinho",
+      "status": "closed",
+      "status_text": "ENCERRADO",
+      "island": "Madeira"
+    },
+    "PR8": {
+      "id": "PR8",
+      "name": "Vereda da Ponta de S. Lourenço",
+      "status": "open",
+      "status_text": "ABERTO",
+      "island": "Madeira"
+    },
+    "PR9": {
+      "id": "PR9",
+      "name": "Levada do Caldeirão Verde",
+      "status": "open",
+      "status_text": "ABERTOFECHADOentre o Caldeirão Verde e o Caldeirão do Inferno",
+      "island": "Madeira"
+    },
+    "PR9.1": {
+      "id": "PR9.1",
+      "name": "Levada do Caldeirão Verde - Um Caminho para todos",
+      "status": "open",
+      "status_text": "ABERTO",
+      "island": "Madeira"
+    },
+    "PR10": {
+      "id": "PR10",
+      "name": "Levada do Furado",
+      "status": "open",
+      "status_text": "ABERTO",
+      "island": "Madeira"
+    },
+    "PR11": {
+      "id": "PR11",
+      "name": "Vereda dos Balcões",
+      "status": "open",
+      "status_text": "ABERTO",
+      "island": "Madeira"
+    },
+    "PR12": {
+      "id": "PR12",
+      "name": "Caminho Real da Encumeada",
+      "status": "partially_open",
+      "status_text": "PARCIALMENTE ABERTO(Transitável desde a Boca da Corridaaté ao km 3,5)",
+      "island": "Madeira"
+    },
+    "PR13": {
+      "id": "PR13",
+      "name": "Vereda do Fanal",
+      "status": "open",
+      "status_text": "ABERTO",
+      "island": "Madeira"
+    },
+    "PR13.1": {
+      "id": "PR13.1",
+      "name": "Vereda da Palha Carga",
+      "status": "open",
+      "status_text": "ABERTO",
+      "island": "Madeira"
+    },
+    "PR14": {
+      "id": "PR14",
+      "name": "Levada dos Cedros",
+      "status": "open",
+      "status_text": "ABERTO",
+      "island": "Madeira"
+    },
+    "PR15": {
+      "id": "PR15",
+      "name": "Vereda da Ribeira da Janela",
+      "status": "open",
+      "status_text": "ABERTO",
+      "island": "Madeira"
+    },
+    "PR16": {
+      "id": "PR16",
+      "name": "Levada Fajã do Rodrigues",
+      "status": "open",
+      "status_text": "ABERTO",
+      "island": "Madeira"
+    },
+    "PR17": {
+      "id": "PR17",
+      "name": "Caminho do Pináculo e Folhadal",
+      "status": "partially_open",
+      "status_text": "PARCIALMENTE ABERTO(Transitável entre a EncumeadaFolhadal – Caramujo - Bica da Cana)",
+      "island": "Madeira"
+    },
+    "PR18": {
+      "id": "PR18",
+      "name": "Levada do Rei",
+      "status": "unknown",
+      "status_text": "CONDICIONADO",
+      "island": "Madeira"
+    },
+    "PR19": {
+      "id": "PR19",
+      "name": "Caminho Real do Paul do Mar",
+      "status": "open",
+      "status_text": "ABERTO",
+      "island": "Madeira"
+    },
+    "PR20": {
+      "id": "PR20",
+      "name": "Vereda do Jardim do Mar",
+      "status": "closed",
+      "status_text": "ENCERRADO",
+      "island": "Madeira"
+    },
+    "PR21": {
+      "id": "PR21",
+      "name": "Caminho do Norte",
+      "status": "open",
+      "status_text": "ABERTO",
+      "island": "Madeira"
+    },
+    "PR22": {
+      "id": "PR22",
+      "name": "Vereda do Chão dos Louros",
+      "status": "open",
+      "status_text": "ABERTO",
+      "island": "Madeira"
+    },
+    "PR23": {
+      "id": "PR23",
+      "name": "Levada da Azenha",
+      "status": "open",
+      "status_text": "ABERTO",
+      "island": "Madeira"
+    },
+    "PR27": {
+      "id": "PR27",
+      "name": "Glaciar de Planalto",
+      "status": "closed",
+      "status_text": "ENCERRADO",
+      "island": "Madeira"
+    },
+    "PR28": {
+      "id": "PR28",
+      "name": "Levada da Rocha Vermelha",
+      "status": "closed",
+      "status_text": "ENCERRADO",
+      "island": "Madeira"
+    },
+    "PR1-PS": {
+      "id": "PR1-PS",
+      "name": "Vereda do Pico Branco e Terra Chã",
+      "status": "open",
+      "status_text": "ABERTO",
+      "island": "Porto Santo"
+    },
+    "PR2-PS": {
+      "id": "PR2-PS",
+      "name": "Vereda do Pico do Castelo",
+      "status": "open",
+      "status_text": "ABERTO",
+      "island": "Porto Santo"
+    },
+    "PR3-PS": {
+      "id": "PR3-PS",
+      "name": "Levada do Pico Castelo",
+      "status": "closed",
+      "status_text": "ENCERRADO",
+      "island": "Porto Santo"
+    }
+  }
+}

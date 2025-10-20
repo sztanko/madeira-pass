@@ -4,40 +4,20 @@ Process Madeira hiking routes data.
 
 This script:
 1. Reads all routes from data/routes.geojson
-2. Fetches the list of routes requiring payment from Madeira API
-3. Filters routes that require payment
+2. Filters PR (Percurso Recomendado) routes - all PR routes require payment
+3. Merges route segments by reference and island
 4. Outputs to public/data/paid_routes.geojson
 """
 
 import json
 import re
-import requests
-import urllib3
 from pathlib import Path
-
-# Disable SSL warnings (needed for Madeira government portal)
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-# API endpoint for routes requiring payment
-API_URL = "https://simplifica.madeira.gov.pt/api/infoProcess/259/resources?processId=78"
 
 # File paths
 SCRIPT_DIR = Path(__file__).parent
 PROJECT_ROOT = SCRIPT_DIR.parent
 INPUT_FILE = PROJECT_ROOT / "data" / "routes.geojson"
 OUTPUT_FILE = PROJECT_ROOT / "public" / "data" / "paid_routes.geojson"
-
-
-def fetch_paid_routes_list():
-    """Fetch the list of routes requiring payment from Madeira API."""
-    try:
-        # Disable SSL verification due to certificate issues with the Madeira portal
-        response = requests.get(API_URL, verify=False)
-        response.raise_for_status()
-        return response.json()
-    except requests.RequestException as e:
-        print(f"Error fetching paid routes list: {e}")
-        return None
 
 
 def load_all_routes():
@@ -74,31 +54,35 @@ def normalize_ref(ref_string):
     return ref_string.upper()
 
 
-def extract_paid_refs(paid_routes_info):
+def get_island_from_coordinates(geometry):
     """
-    Extract normalized PR references from API response.
+    Determine which island a route is on based on coordinates.
 
     Args:
-        paid_routes_info: API response with paid routes data
+        geometry: GeoJSON geometry
 
     Returns:
-        Set of normalized PR reference codes
+        'Porto Santo' or 'Madeira'
     """
-    paid_refs = set()
+    # Extract first coordinate to determine location
+    coords = geometry.get('coordinates', [])
 
-    for route in paid_routes_info.get('data', []):
-        name = route.get('name', '')
-        normalized = normalize_ref(name)
-        if normalized:
-            paid_refs.add(normalized)
-            print(f"  Found paid route: {normalized} ({name})")
+    if geometry['type'] == 'LineString':
+        lon = coords[0][0] if coords else -17.0
+    elif geometry['type'] == 'MultiLineString':
+        lon = coords[0][0][0] if coords and coords[0] else -17.0
+    else:
+        lon = -17.0
 
-    return paid_refs
+    # Porto Santo is at longitude ~-16.3, Madeira main island is at ~-17.0
+    # Use -16.5 as the dividing line
+    return 'Porto Santo' if lon > -16.5 else 'Madeira'
 
 
 def merge_route_segments(features):
     """
     Merge route segments with the same reference into single features.
+    Separates routes by island (Madeira vs Porto Santo).
 
     Args:
         features: List of route features
@@ -106,20 +90,26 @@ def merge_route_segments(features):
     Returns:
         List of merged features with combined geometries
     """
-    # Group features by normalized ref
-    routes_by_ref = {}
+    # Group features by normalized ref AND island
+    routes_by_ref_and_island = {}
 
     for feature in features:
         ref = feature['properties'].get('ref', '')
         normalized_ref = normalize_ref(ref)
+        island = get_island_from_coordinates(feature['geometry'])
 
-        if normalized_ref not in routes_by_ref:
-            routes_by_ref[normalized_ref] = []
-        routes_by_ref[normalized_ref].append(feature)
+        # Create a key that includes both ref and island
+        key = f"{normalized_ref}|{island}"
+
+        if key not in routes_by_ref_and_island:
+            routes_by_ref_and_island[key] = []
+        routes_by_ref_and_island[key].append(feature)
 
     merged_features = []
 
-    for ref, segments in routes_by_ref.items():
+    for key, segments in routes_by_ref_and_island.items():
+        ref, island = key.split('|')
+
         # Find the segment with the most complete properties (has name)
         best_properties = None
         for segment in segments:
@@ -147,39 +137,47 @@ def merge_route_segments(features):
             'coordinates': all_coordinates if len(all_coordinates) > 1 else all_coordinates[0]
         }
 
+        # Create unique ID with island suffix for Porto Santo
+        route_id = f"{ref}-PS" if island == 'Porto Santo' else ref
+
+        # Add island info to name if Porto Santo
+        route_name = best_properties.get('name', 'N/A')
+        if island == 'Porto Santo' and route_name != 'N/A':
+            route_name = f"{route_name} (Porto Santo)"
+
         merged_feature = {
             'type': 'Feature',
             'properties': {
                 **best_properties,
-                'id': ref,  # Use normalized ref as ID
+                'id': route_id,
+                'name': route_name,
+                'island': island,
                 'requiresPayment': True
             },
             'geometry': merged_geometry
         }
 
         merged_features.append(merged_feature)
-        print(f"  ✓ Merged {len(segments)} segment(s) for {ref}: {best_properties.get('name', 'N/A')}")
+        print(f"  ✓ Merged {len(segments)} segment(s) for {route_id} ({island}): {route_name}")
 
     return merged_features
 
 
-def filter_paid_routes(all_routes, paid_routes_info):
+def filter_paid_routes(all_routes):
     """
     Filter routes that require payment.
+    All PR (Percurso Recomendado) routes in Madeira require payment.
 
     Args:
         all_routes: GeoJSON FeatureCollection with all routes
-        paid_routes_info: API response with paid routes data
 
     Returns:
         GeoJSON FeatureCollection with only paid routes
     """
-    # Extract paid route references from API
-    paid_refs = extract_paid_refs(paid_routes_info)
-    print(f"\nTotal unique paid routes from API: {len(paid_refs)}")
+    print("\nFiltering PR routes...")
 
-    matched_features = []
-    matched_refs = set()
+    pr_features = []
+    pr_refs = set()
 
     # Filter routes from GeoJSON
     for feature in all_routes.get('features', []):
@@ -193,22 +191,16 @@ def filter_paid_routes(all_routes, paid_routes_info):
         # Get the ref field
         ref = properties.get('ref', '')
 
-        # Normalize and check if it's a paid route
-        normalized_ref = normalize_ref(ref)
+        # Check if it's a PR route (starts with "PR")
+        if ref and ref.upper().startswith('PR'):
+            normalized_ref = normalize_ref(ref)
+            pr_features.append(feature)
+            pr_refs.add(normalized_ref)
 
-        if normalized_ref in paid_refs:
-            matched_features.append(feature)
-            matched_refs.add(normalized_ref)
+    print(f"Found {len(pr_features)} PR route segments ({len(pr_refs)} unique refs)")
 
     print(f"\nMerging route segments...")
-    merged_features = merge_route_segments(matched_features)
-
-    # Report unmatched routes
-    unmatched = paid_refs - matched_refs
-    if unmatched:
-        print(f"\n⚠ Warning: {len(unmatched)} paid routes from API not found in GeoJSON:")
-        for ref in sorted(unmatched):
-            print(f"  - {ref}")
+    merged_features = merge_route_segments(pr_features)
 
     return {
         "type": "FeatureCollection",
@@ -229,25 +221,19 @@ def save_paid_routes(paid_routes):
 
 def main():
     """Main processing function."""
-    print("Fetching paid routes information from Madeira API...")
-    paid_routes_info = fetch_paid_routes_list()
-
-    if paid_routes_info is None:
-        return
-
     print(f"Loading all routes from {INPUT_FILE}...")
     all_routes = load_all_routes()
 
     if all_routes is None:
         return
 
-    print("Filtering routes that require payment...")
-    paid_routes = filter_paid_routes(all_routes, paid_routes_info)
+    print("Processing PR routes (all PR routes require payment)...")
+    paid_routes = filter_paid_routes(all_routes)
 
-    print("Saving processed routes...")
+    print("\nSaving processed routes...")
     save_paid_routes(paid_routes)
 
-    print("Done!")
+    print("\nDone!")
 
 
 if __name__ == "__main__":
