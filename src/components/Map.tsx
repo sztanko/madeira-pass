@@ -170,7 +170,7 @@ export default function Map({ userLocation, routes, routeStatus, paidRoutes, sel
       }
     }
 
-    map.addControl(new LegendControl(), 'bottom-right');
+    map.addControl(new LegendControl(), 'top-left');
 
     // Add CSS for menu button and legend
     const style = document.createElement('style');
@@ -335,7 +335,7 @@ export default function Map({ userLocation, routes, routeStatus, paidRoutes, sel
       console.log('Map not loaded yet, adding load listener');
       map.once('load', onLoad);
     }
-  }, [routes, paidRoutes, selectedRouteId, onRouteClick, onMapClick]);
+  }, [routes, paidRoutes, selectedRouteId, onRouteClick, onMapClick, closedRoutes, partiallyOpenRoutes, freeRoutes, routeStatus]);
 
   // Update route styling based on paid status, selection, status, and free routes
   useEffect(() => {
