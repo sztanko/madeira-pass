@@ -61,7 +61,7 @@ export default function InfoPanel({
   };
   const renderMainView = () => (
     <div className="info-content">
-      <h2>Madeira Hiking</h2>
+      <h2>Madeira Pass</h2>
       <p>Track your location on hiking routes and manage trail passes.</p>
       <nav className="info-nav">
         <button onClick={() => onNavigate('routes-list')}>Routes List</button>
@@ -78,6 +78,7 @@ export default function InfoPanel({
     const props = route.properties;
     const status = getRouteStatus(routeId);
     const isFree = props.requiresPayment === false;
+    const isClosed = status === 'closed';
 
     return (
       <div className="info-content route-detail">
@@ -99,31 +100,37 @@ export default function InfoPanel({
           )}
         </div>
 
-        {isFree && (
+        {isClosed && (
+          <div className="warning-message">
+            <strong>Route is currently closed.</strong> Check back later or visit the official IFCN website for updates.
+          </div>
+        )}
+
+        {isFree && !isClosed && (
           <div className="success-message">
             This is a free route - no payment required!
           </div>
         )}
 
-        {!isFree && isNearby && !isPaid && (
+        {!isFree && !isClosed && isNearby && !isPaid && (
           <div className="warning-message">
             <strong>Warning:</strong> You are on a route that requires a pass, and you haven't marked it as paid yet!
           </div>
         )}
 
-        {!isFree && isNearby && isPaid && (
+        {!isFree && !isClosed && isNearby && isPaid && (
           <div className="success-message">
             You have a pass for this route today.
           </div>
         )}
 
-        {!isFree && !isNearby && !isPaid && (
+        {!isFree && !isClosed && !isNearby && !isPaid && (
           <div className="info-message">
             You haven't paid for this route, but you are not on it. You don't have to pay unless you plan to walk on it today.
           </div>
         )}
 
-        {!isFree && !isNearby && isPaid && (
+        {!isFree && !isClosed && !isNearby && isPaid && (
           <div className="success-message">
             You have a pass for this route today.
           </div>
@@ -170,18 +177,9 @@ export default function InfoPanel({
               </a>
             </div>
           )}
-
-          {props['osmc:symbol'] && (
-            <div className="route-info-item">
-              <span className="route-info-label">Trail markers:</span>
-              <span className="route-info-value trail-marker">
-                {props['osmc:symbol'].split(':').slice(3, 4)[0] || props.ref}
-              </span>
-            </div>
-          )}
         </div>
 
-        {!isFree && (
+        {!isFree && !isClosed && (
           <div className="button-group">
             {isPaid ? (
               <button
@@ -408,18 +406,65 @@ export default function InfoPanel({
     <div className="info-content">
       <h2>About</h2>
       <p>
-        <strong>Madeira Hiking</strong> is a location-aware web app that helps you track which
-        hiking routes require payment and manages your daily passes.
+        <strong>Madeira Pass</strong> is a free, location-aware web app that helps you track which
+        hiking routes require payment and manages your daily pass records.
       </p>
       <p>
         The app uses your location to warn you when you're approaching a route that requires
         a pass, and helps you keep track of which routes you've already paid for today.
       </p>
-      <p style={{ fontSize: '14px', color: '#666', marginTop: '16px' }}>
-        This is an open-source project. Route data is sourced from OpenStreetMap and the
-        official Madeira government portal.
+
+      <h3 style={{ fontSize: '16px', fontWeight: '600', marginTop: '20px', marginBottom: '8px' }}>Disclaimer</h3>
+      <p style={{ fontSize: '13px', color: '#555', lineHeight: '1.6' }}>
+        This website is provided free of charge and "as is" without any warranties or guarantees.
+        When you mark a route as paid, it's assumed to be valid for today only and will automatically
+        expire at midnight. <strong>This app does NOT handle payments</strong> - you will be redirected
+        to the official Simplifica portal ({' '}
+        <a
+          href="https://simplifica.madeira.gov.pt"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: '#8b5cf6' }}
+        >
+          simplifica.madeira.gov.pt
+        </a>
+        ) for all payment transactions.
       </p>
-      <button className="btn-secondary" onClick={() => onNavigate('main')}>
+      <p style={{ fontSize: '13px', color: '#555', lineHeight: '1.6' }}>
+        Route statuses are automatically updated daily from official sources. However, we cannot
+        guarantee the accuracy or availability of this information. Please verify route conditions
+        independently before hiking.
+      </p>
+
+      <h3 style={{ fontSize: '16px', fontWeight: '600', marginTop: '20px', marginBottom: '8px' }}>Open Source</h3>
+      <p style={{ fontSize: '14px', color: '#666', lineHeight: '1.6' }}>
+        This is an open-source project. Route data is sourced from OpenStreetMap and the
+        official Madeira government portals.
+      </p>
+      <p style={{ fontSize: '14px', lineHeight: '1.6' }}>
+        <strong>Source code:</strong>{' '}
+        <a
+          href="https://github.com/sztanko/madeira-pass"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: '#8b5cf6', textDecoration: 'none', fontWeight: '500' }}
+        >
+          github.com/sztanko/madeira-pass
+        </a>
+      </p>
+
+      <h3 style={{ fontSize: '16px', fontWeight: '600', marginTop: '20px', marginBottom: '8px' }}>Contact</h3>
+      <p style={{ fontSize: '14px', lineHeight: '1.6' }}>
+        Questions or feedback? Email:{' '}
+        <a
+          href="mailto:sztanko@gmail.com"
+          style={{ color: '#8b5cf6', textDecoration: 'none', fontWeight: '500' }}
+        >
+          sztanko@gmail.com
+        </a>
+      </p>
+
+      <button className="btn-secondary" onClick={() => onNavigate('main')} style={{ marginTop: '16px' }}>
         Back to Menu
       </button>
     </div>

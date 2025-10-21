@@ -1,5 +1,5 @@
 ## Intro
-Madeira Hiking is a micro web app that tracks your location and warns you if you need to buy a pass to walk on the root you are on. It is designed for mobile and is client-side only - there is no backend.
+Madeira Pass is a micro web app that tracks your location and warns you if you need to buy a pass to walk on the root you are on. It is designed for mobile and is client-side only - there is no backend.
 
 
 ## Elements on the screen:

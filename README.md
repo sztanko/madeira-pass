@@ -1,4 +1,4 @@
-# Madeira Hiking
+# Madeira Pass
 
 A micro web app that tracks your location and warns you if you need to buy a pass to walk on hiking routes in Madeira.
 

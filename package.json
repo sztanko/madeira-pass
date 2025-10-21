@@ -1,8 +1,8 @@
 {
-  "name": "madeira-hiking",
+  "name": "madeira-pass",
   "version": "1.0.0",
   "type": "module",
-  "description": "Madeira Hiking route tracker with payment warnings",
+  "description": "Madeira Pass - hiking route tracker with payment warnings",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",

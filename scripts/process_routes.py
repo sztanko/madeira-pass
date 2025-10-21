@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Process Madeira hiking routes data.
+Process Madeira Pass routes data.
 
 This script:
 1. Reads all routes from data/routes.geojson
@@ -333,7 +333,7 @@ def save_paid_routes(paid_routes):
 def main():
     """Main processing function."""
     print("=" * 70)
-    print("MADEIRA HIKING ROUTES PROCESSOR")
+    print("MADEIRA PASS ROUTES PROCESSOR")
     print("=" * 70)
 
     # Fetch official list of paid routes
