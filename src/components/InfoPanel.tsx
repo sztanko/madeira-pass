@@ -77,33 +77,53 @@ export default function InfoPanel({
     const isNearby = distance !== undefined && distance <= 50;
     const props = route.properties;
     const status = getRouteStatus(routeId);
+    const isFree = props.requiresPayment === false;
 
     return (
       <div className="info-content route-detail">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px', flexWrap: 'wrap' }}>
           <h2 style={{ margin: 0 }}>{props.name}</h2>
           {renderStatusBadge(status)}
+          {isFree && (
+            <span style={{
+              backgroundColor: '#d1fae5',
+              color: '#065f46',
+              padding: '2px 8px',
+              borderRadius: '4px',
+              fontSize: '11px',
+              fontWeight: '600',
+              textTransform: 'uppercase'
+            }}>
+              Free
+            </span>
+          )}
         </div>
 
-        {isNearby && !isPaid && (
+        {isFree && (
+          <div className="success-message">
+            This is a free route - no payment required!
+          </div>
+        )}
+
+        {!isFree && isNearby && !isPaid && (
           <div className="warning-message">
             <strong>Warning:</strong> You are on a route that requires a pass, and you haven't marked it as paid yet!
           </div>
         )}
 
-        {isNearby && isPaid && (
+        {!isFree && isNearby && isPaid && (
           <div className="success-message">
             You have a pass for this route today.
           </div>
         )}
 
-        {!isNearby && !isPaid && (
+        {!isFree && !isNearby && !isPaid && (
           <div className="info-message">
             You haven't paid for this route, but you are not on it. You don't have to pay unless you plan to walk on it today.
           </div>
         )}
 
-        {!isNearby && isPaid && (
+        {!isFree && !isNearby && isPaid && (
           <div className="success-message">
             You have a pass for this route today.
           </div>
@@ -161,46 +181,48 @@ export default function InfoPanel({
           )}
         </div>
 
-        <div className="button-group">
-          {isPaid ? (
-            <button
-              className="btn-secondary"
-              onClick={() => {
-                if (window.confirm('Are you sure you want to unmark this route as paid? This might have been marked by mistake.')) {
-                  onUnmarkPaid(routeId);
-                }
-              }}
-            >
-              Unmark as Paid
-            </button>
-          ) : (
-            <>
-              <button
-                className="btn-primary"
-                onClick={() => {
-                  if (window.confirm('Are you sure you have already paid for this route today?')) {
-                    onMarkPaid(routeId);
-                  }
-                }}
-              >
-                Mark as Already Paid for Today
-              </button>
-
+        {!isFree && (
+          <div className="button-group">
+            {isPaid ? (
               <button
                 className="btn-secondary"
                 onClick={() => {
-                  if (window.confirm(
-                    'You will be redirected to the Madeira payment portal. After completing the payment, please return here and mark the route as paid.'
-                  )) {
-                    onBuyPass(routeId);
+                  if (window.confirm('Are you sure you want to unmark this route as paid? This might have been marked by mistake.')) {
+                    onUnmarkPaid(routeId);
                   }
                 }}
               >
-                Buy Pass for Today
+                Unmark as Paid
               </button>
-            </>
-          )}
-        </div>
+            ) : (
+              <>
+                <button
+                  className="btn-primary"
+                  onClick={() => {
+                    if (window.confirm('Are you sure you have already paid for this route today?')) {
+                      onMarkPaid(routeId);
+                    }
+                  }}
+                >
+                  Mark as Already Paid for Today
+                </button>
+
+                <button
+                  className="btn-secondary"
+                  onClick={() => {
+                    if (window.confirm(
+                      'You will be redirected to the Madeira payment portal. After completing the payment, please return here and mark the route as paid.'
+                    )) {
+                      onBuyPass(routeId);
+                    }
+                  }}
+                >
+                  Buy Pass for Today
+                </button>
+              </>
+            )}
+          </div>
+        )}
       </div>
     );
   };
@@ -229,7 +251,7 @@ export default function InfoPanel({
       <div className="info-content">
         <h2>All Hiking Routes</h2>
         <p style={{ marginBottom: '16px', fontSize: '14px', color: '#666' }}>
-          {routes.length} paid hiking routes in Madeira
+          {routes.length} hiking routes in Madeira (paid and free)
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
@@ -237,6 +259,23 @@ export default function InfoPanel({
             const props = route.properties;
             const isPaid = isRoutePaid(props.id);
             const status = getRouteStatus(props.id);
+            const isFree = props.requiresPayment === false;
+
+            // Determine colors based on payment status
+            let bgColor, borderColor, badgeColor;
+            if (isFree) {
+              bgColor = '#f0fdf4'; // light green
+              borderColor = '#10b981'; // green
+              badgeColor = '#10b981'; // green
+            } else if (isPaid) {
+              bgColor = '#eff6ff'; // light blue
+              borderColor = '#3b82f6'; // blue
+              badgeColor = '#3b82f6'; // blue
+            } else {
+              bgColor = '#faf5ff'; // light purple
+              borderColor = '#8b5cf6'; // purple
+              badgeColor = '#8b5cf6'; // purple
+            }
 
             return (
               <div
@@ -244,8 +283,8 @@ export default function InfoPanel({
                 onClick={() => onRouteClick(props.id)}
                 style={{
                   padding: '12px',
-                  backgroundColor: isPaid ? '#f0fdfa' : '#faf5ff',
-                  border: `2px solid ${isPaid ? '#14b8a6' : '#8b5cf6'}`,
+                  backgroundColor: bgColor,
+                  border: `2px solid ${borderColor}`,
                   borderRadius: '8px',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease'
@@ -263,7 +302,7 @@ export default function InfoPanel({
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                     {props.ref && (
                       <span style={{
-                        backgroundColor: isPaid ? '#14b8a6' : '#8b5cf6',
+                        backgroundColor: badgeColor,
                         color: 'white',
                         padding: '2px 8px',
                         borderRadius: '4px',
@@ -273,7 +312,20 @@ export default function InfoPanel({
                         {props.ref}
                       </span>
                     )}
-                    {isPaid && (
+                    {isFree && (
+                      <span style={{
+                        backgroundColor: '#d1fae5',
+                        color: '#065f46',
+                        padding: '2px 8px',
+                        borderRadius: '4px',
+                        fontSize: '11px',
+                        fontWeight: '600',
+                        textTransform: 'uppercase'
+                      }}>
+                        Free
+                      </span>
+                    )}
+                    {!isFree && isPaid && (
                       <span style={{ fontSize: '16px' }}>✓</span>
                     )}
                     {renderStatusBadge(status)}
@@ -302,7 +354,7 @@ export default function InfoPanel({
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={(e) => e.stopPropagation()}
-                      style={{ color: isPaid ? '#14b8a6' : '#8b5cf6', textDecoration: 'none', fontWeight: '500' }}
+                      style={{ color: badgeColor, textDecoration: 'none', fontWeight: '500' }}
                     >
                       View details →
                     </a>

@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
-import { RouteCollection, UserLocation, InfoPanelState } from '../types';
+import { RouteCollection, UserLocation, InfoPanelState, RouteStatusData } from '../types';
 import { isInMadeira } from '../utils/geolocation';
 
 interface MapProps {
   userLocation: UserLocation | null;
   routes: RouteCollection | null;
+  routeStatus: RouteStatusData | null;
   paidRoutes: string[];
   selectedRouteId: string | null;
   onRouteClick: (routeId: string) => void;
@@ -13,11 +14,25 @@ interface MapProps {
   onMenuClick: (view: InfoPanelState['view']) => void;
 }
 
-export default function Map({ userLocation, routes, paidRoutes, selectedRouteId, onRouteClick, onMapClick, onMenuClick }: MapProps) {
+export default function Map({ userLocation, routes, routeStatus, paidRoutes, selectedRouteId, onRouteClick, onMapClick, onMenuClick }: MapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const userMarkerRef = useRef<maplibregl.Marker | null>(null);
   const [hasMovedToUser, setHasMovedToUser] = useState(false);
+
+  // Extract route IDs by status
+  const closedRoutes = routeStatus
+    ? Object.keys(routeStatus.routes).filter(id => routeStatus.routes[id].status === 'closed')
+    : [];
+
+  const partiallyOpenRoutes = routeStatus
+    ? Object.keys(routeStatus.routes).filter(id => routeStatus.routes[id].status === 'partially_open')
+    : [];
+
+  // Extract free route IDs (routes that don't require payment)
+  const freeRoutes = routes
+    ? routes.features.filter(f => !f.properties.requiresPayment).map(f => f.properties.id)
+    : [];
 
   // Initialize map
   useEffect(() => {
@@ -89,7 +104,75 @@ export default function Map({ userLocation, routes, paidRoutes, selectedRouteId,
 
     map.addControl(new MenuControl(), 'top-right');
 
-    // Add CSS for menu button
+    // Add custom legend control
+    class LegendControl {
+      private _container?: HTMLDivElement;
+      private _isExpanded: boolean = false;
+
+      onAdd(_map: maplibregl.Map) {
+        this._container = document.createElement('div');
+        this._container.className = 'maplibregl-ctrl maplibregl-ctrl-group';
+        this._container.style.backgroundColor = '#fff';
+
+        const button = document.createElement('button');
+        button.className = 'maplibregl-ctrl-legend-toggle';
+        button.type = 'button';
+        button.setAttribute('aria-label', 'Toggle legend');
+        button.innerHTML = '🎨'; // Palette icon
+
+        const legendContent = document.createElement('div');
+        legendContent.className = 'maplibregl-ctrl-legend-content';
+        legendContent.style.display = 'none';
+        legendContent.innerHTML = `
+          <div style="padding: 8px; min-width: 180px;">
+            <div style="font-weight: 600; margin-bottom: 8px; font-size: 12px;">Route Colors</div>
+            <div style="display: flex; flex-direction: column; gap: 6px; font-size: 11px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 20px; height: 3px; background-color: #dc2626; border-radius: 2px;"></div>
+                <span>Closed</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 20px; height: 3px; background-color: #fbbf24; border-radius: 2px;"></div>
+                <span>Partially Open</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 20px; height: 3px; background-color: #fb923c; border-radius: 2px;"></div>
+                <span>Selected</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 20px; height: 3px; background-color: #10b981; border-radius: 2px;"></div>
+                <span>Free</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 20px; height: 3px; background-color: #3b82f6; border-radius: 2px;"></div>
+                <span>Paid by You</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 20px; height: 3px; background-color: #8b5cf6; border-radius: 2px;"></div>
+                <span>Requires Payment</span>
+              </div>
+            </div>
+          </div>
+        `;
+
+        button.addEventListener('click', () => {
+          this._isExpanded = !this._isExpanded;
+          legendContent.style.display = this._isExpanded ? 'block' : 'none';
+        });
+
+        this._container.appendChild(button);
+        this._container.appendChild(legendContent);
+        return this._container;
+      }
+
+      onRemove() {
+        this._container?.parentNode?.removeChild(this._container);
+      }
+    }
+
+    map.addControl(new LegendControl(), 'bottom-right');
+
+    // Add CSS for menu button and legend
     const style = document.createElement('style');
     style.textContent = `
       .maplibregl-ctrl-menu {
@@ -105,6 +188,25 @@ export default function Map({ userLocation, routes, paidRoutes, selectedRouteId,
       }
       .maplibregl-ctrl-menu:hover {
         background-color: #f0f0f0;
+      }
+      .maplibregl-ctrl-legend-toggle {
+        width: 29px;
+        height: 29px;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        background-color: #fff;
+        border: none;
+        border-bottom: 1px solid #ddd;
+      }
+      .maplibregl-ctrl-legend-toggle:hover {
+        background-color: #f0f0f0;
+      }
+      .maplibregl-ctrl-legend-content {
+        background-color: #fff;
+        border-top: 1px solid #ddd;
       }
     `;
     document.head.appendChild(style);
@@ -156,14 +258,20 @@ export default function Map({ userLocation, routes, paidRoutes, selectedRouteId,
           type: 'line',
           source: 'routes',
           paint: {
-            // Color based on selected state, then paid state
+            // Color based on status and payment requirements
             'line-color': [
               'case',
+              ['in', ['get', 'id'], ['literal', closedRoutes]],
+              '#dc2626', // Closed: red
+              ['in', ['get', 'id'], ['literal', partiallyOpenRoutes]],
+              '#fbbf24', // Partially open: yellow/amber
               ['==', ['get', 'id'], selectedRouteId || ''],
               '#fb923c', // Selected: bright orange
+              ['in', ['get', 'id'], ['literal', freeRoutes]],
+              '#10b981', // Free: green
               ['in', ['get', 'id'], ['literal', paidRoutes]],
-              '#14b8a6', // Paid: teal/turquoise
-              '#8b5cf6'  // Unpaid: purple
+              '#3b82f6', // User paid: blue (distinct from green)
+              '#8b5cf6'  // Unpaid (requires payment): purple
             ],
             // Width based on selected state
             'line-width': [
@@ -229,7 +337,7 @@ export default function Map({ userLocation, routes, paidRoutes, selectedRouteId,
     }
   }, [routes, paidRoutes, selectedRouteId, onRouteClick, onMapClick]);
 
-  // Update route styling based on paid status and selection
+  // Update route styling based on paid status, selection, status, and free routes
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !map.getLayer('routes-layer')) return;
@@ -239,11 +347,17 @@ export default function Map({ userLocation, routes, paidRoutes, selectedRouteId,
     // Update paint properties with new data-driven expressions
     map.setPaintProperty('routes-layer', 'line-color', [
       'case',
+      ['in', ['get', 'id'], ['literal', closedRoutes]],
+      '#dc2626', // Closed: red
+      ['in', ['get', 'id'], ['literal', partiallyOpenRoutes]],
+      '#fbbf24', // Partially open: yellow/amber
       ['==', ['get', 'id'], selectedRouteId || ''],
       '#fb923c', // Selected: bright orange
+      ['in', ['get', 'id'], ['literal', freeRoutes]],
+      '#10b981', // Free: green
       ['in', ['get', 'id'], ['literal', paidRoutes]],
-      '#14b8a6', // Paid: teal/turquoise
-      '#8b5cf6'  // Unpaid: purple
+      '#3b82f6', // User paid: blue (distinct from green)
+      '#8b5cf6'  // Unpaid (requires payment): purple
     ]);
 
     map.setPaintProperty('routes-layer', 'line-width', [
@@ -252,7 +366,7 @@ export default function Map({ userLocation, routes, paidRoutes, selectedRouteId,
       5, // Selected: thicker
       3  // Normal: standard width
     ]);
-  }, [paidRoutes, selectedRouteId]);
+  }, [paidRoutes, selectedRouteId, closedRoutes, partiallyOpenRoutes, routeStatus, freeRoutes]);
 
   // Zoom to selected route when it changes
   useEffect(() => {

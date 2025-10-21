@@ -3383,7 +3383,7 @@
         "wheelchair": "yes",
         "id": "PRJOEL",
         "island": "Madeira",
-        "requiresPayment": true
+        "requiresPayment": false
       },
       "geometry": {
         "type": "LineString",
@@ -45948,7 +45948,7 @@
         "website:de": "https://visitmadeira.com/en/what-to-do/nature-seekers/activities/hiking/pr-28-levada-da-rocha-vermelha/",
         "id": "PR23",
         "island": "Madeira",
-        "requiresPayment": true
+        "requiresPayment": false
       },
       "geometry": {
         "type": "LineString",
@@ -47036,7 +47036,7 @@
         "website:en": "https://visitmadeira.com/en/what-to-do/nature-seekers/activities/hiking/ps-pr-2-vereda-do-pico-do-castelo/",
         "id": "PR2 VO-PS",
         "island": "Porto Santo",
-        "requiresPayment": true
+        "requiresPayment": false
       },
       "geometry": {
         "type": "LineString",
@@ -47763,7 +47763,7 @@
         "type": "route",
         "id": "PR2 VE-PS",
         "island": "Porto Santo",
-        "requiresPayment": true
+        "requiresPayment": false
       },
       "geometry": {
         "type": "LineString",
@@ -49532,7 +49532,7 @@
         "website:pt": "https://visitmadeira.com/pt/o-que-fazer/exploradores-da-natureza/atividades/caminhadas/pr-3-vereda-do-burro/",
         "id": "PR3",
         "island": "Madeira",
-        "requiresPayment": true
+        "requiresPayment": false
       },
       "geometry": {
         "type": "LineString",
@@ -51261,7 +51261,7 @@
         "website:pt": "https://visitmadeira.com/pt/o-que-fazer/exploradores-da-natureza/atividades/caminhadas/pr-31-caminho-real-do-monte/",
         "id": "PR3.1",
         "island": "Madeira",
-        "requiresPayment": true
+        "requiresPayment": false
       },
       "geometry": {
         "type": "LineString",
@@ -52294,7 +52294,7 @@
         "website:pt": "https://visitmadeira.com/pt/o-que-fazer/exploradores-da-natureza/atividades/caminhadas/pr-4-levada-do-barreiro/",
         "id": "PR4",
         "island": "Madeira",
-        "requiresPayment": true
+        "requiresPayment": false
       },
       "geometry": {
         "type": "LineString",
@@ -53220,7 +53220,7 @@
         "type": "route",
         "id": "PR21 <-> PR22",
         "island": "Madeira",
-        "requiresPayment": true
+        "requiresPayment": false
       },
       "geometry": {
         "type": "LineString",

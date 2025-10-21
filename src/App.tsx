@@ -181,6 +181,7 @@ function App() {
       <Map
         userLocation={userLocation}
         routes={routes}
+        routeStatus={routeStatus}
         paidRoutes={paidRouteIds}
         selectedRouteId={selectedRouteId}
         onRouteClick={handleRouteClick}
