@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-01-05T03:42:47.037859+00:00",
+  "last_updated": "2026-01-06T03:37:38.029100+00:00",
   "source_url": "https://ifcn.madeira.gov.pt/pt/atividades-de-natureza/percursos-pedestres-recomendados/percursos-pedestres-recomendados.html",
   "routes": {
     "PR1": {
@@ -61,8 +61,8 @@
     "PR5": {
       "id": "PR5",
       "name": "Vereda das Funduras",
-      "status": "open",
-      "status_text": "ABERTO",
+      "status": "closed",
+      "status_text": "ENCERRADO",
       "island": "Madeira"
     },
     "PR6": {
@@ -145,8 +145,8 @@
     "PR9": {
       "id": "PR9",
       "name": "Levada do Caldeirão Verde",
-      "status": "open",
-      "status_text": "ABERTOFECHADOentre o Caldeirão Verde e o Caldeirão do Inferno",
+      "status": "closed",
+      "status_text": "ENCERRADO",
       "island": "Madeira"
     },
     "PR9.1": {
