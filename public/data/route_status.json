@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-02-11T04:01:13.820481+00:00",
+  "last_updated": "2026-02-12T03:57:51.094045+00:00",
   "source_url": "https://ifcn.madeira.gov.pt/pt/atividades-de-natureza/percursos-pedestres-recomendados/percursos-pedestres-recomendados.html",
   "routes": {
     "PR1": {
@@ -68,8 +68,8 @@
     "PR6": {
       "id": "PR6",
       "name": "Levada das 25 Fontes",
-      "status": "open",
-      "status_text": "ABERTO(troço unidirecional da Levada das 25 Fontes com circulação controlada num único sentido: Rabaçal – 25 Fontes (ida) pela Levada das 25 Fontes e 25 Fontes – Rabaçal (regresso) pelo troço alternativo, denominado de Bypass.)",
+      "status": "closed",
+      "status_text": "CONDICIONADO(troço designado de bypass estará temporariamente encerrado à circulação de pessoas, a partir do dia 11 de fevereiro de 2026, por um período aproximado de duas semanas. Durante este período, o troço unidirecional da Levada das 25 Fontes passará a funcionar de forma bidirecional, permitindo a circulação de pessoas em ambos os sentidos.)",
       "island": "Madeira"
     },
     "PR6.1": {
