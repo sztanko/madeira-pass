@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-03-16T04:05:24.353608+00:00",
+  "last_updated": "2026-03-17T03:52:33.007084+00:00",
   "source_url": "https://ifcn.madeira.gov.pt/pt/atividades-de-natureza/percursos-pedestres-recomendados/percursos-pedestres-recomendados.html",
   "routes": {
     "PR1": {
@@ -61,8 +61,8 @@
     "PR5": {
       "id": "PR5",
       "name": "Vereda das Funduras",
-      "status": "open",
-      "status_text": "ABERTO",
+      "status": "closed",
+      "status_text": "ENCERRADO",
       "island": "Madeira"
     },
     "PR6": {
