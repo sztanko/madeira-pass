@@ -1,12 +1,12 @@
 {
-  "last_updated": "2026-03-21T03:48:16.871115+00:00",
+  "last_updated": "2026-03-22T03:54:06.844559+00:00",
   "source_url": "https://ifcn.madeira.gov.pt/pt/atividades-de-natureza/percursos-pedestres-recomendados/percursos-pedestres-recomendados.html",
   "routes": {
     "PR1": {
       "id": "PR1",
       "name": "Vereda do Areeiro",
-      "status": "closed",
-      "status_text": "ENCERRADO",
+      "status": "open",
+      "status_text": "ABERTOPercurso transitável desde o Pico do Areeiro até ao Miradouro da Pedra Rija, ao km 1,2",
       "island": "Madeira"
     },
     "PR1.1": {
@@ -19,8 +19,8 @@
     "PR1.2": {
       "id": "PR1.2",
       "name": "Vereda do Pico Ruivo",
-      "status": "closed",
-      "status_text": "ENCERRADO",
+      "status": "open",
+      "status_text": "ABERTO",
       "island": "Madeira"
     },
     "PR1.3": {
@@ -145,8 +145,8 @@
     "PR9": {
       "id": "PR9",
       "name": "Levada do Caldeirão Verde",
-      "status": "open",
-      "status_text": "ABERTOFECHADOentre o Caldeirão Verde e o Caldeirão do Inferno",
+      "status": "closed",
+      "status_text": "ENCERRADO",
       "island": "Madeira"
     },
     "PR9.1": {
@@ -215,8 +215,8 @@
     "PR17": {
       "id": "PR17",
       "name": "Caminho do Pináculo e Folhadal",
-      "status": "closed",
-      "status_text": "ENCERRADO(Transitável entre a EncumeadaFolhadal – Caramujo - Bica da Cana)",
+      "status": "open",
+      "status_text": "ABERTO(Transitável entre a EncumeadaFolhadal – Caramujo - Bica da Cana)",
       "island": "Madeira"
     },
     "PR18": {
