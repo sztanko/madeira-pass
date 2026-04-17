@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-04-16T04:08:38.270203+00:00",
+  "last_updated": "2026-04-17T04:07:34.023495+00:00",
   "source_url": "https://ifcn.madeira.gov.pt/pt/atividades-de-natureza/percursos-pedestres-recomendados/percursos-pedestres-recomendados.html",
   "routes": {
     "PR1": {
@@ -222,8 +222,8 @@
     "PR18": {
       "id": "PR18",
       "name": "Levada do Rei",
-      "status": "closed",
-      "status_text": "ENCERRADO",
+      "status": "open",
+      "status_text": "ABERTO",
       "island": "Madeira"
     },
     "PR19": {
