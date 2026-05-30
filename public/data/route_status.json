@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-05-29T04:35:07.843884+00:00",
+  "last_updated": "2026-05-30T04:27:18.357917+00:00",
   "source_url": "https://ifcn.madeira.gov.pt/pt/atividades-de-natureza/percursos-pedestres-recomendados/percursos-pedestres-recomendados.html",
   "routes": {
     "PR1": {
@@ -145,8 +145,8 @@
     "PR9": {
       "id": "PR9",
       "name": "Levada do Caldeirão Verde",
-      "status": "closed",
-      "status_text": "ENCERRADO",
+      "status": "open",
+      "status_text": "ABERTO",
       "island": "Madeira"
     },
     "PR9.1": {
