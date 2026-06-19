@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-06-18T04:37:10.752041+00:00",
+  "last_updated": "2026-06-19T04:38:31.938270+00:00",
   "source_url": "https://ifcn.madeira.gov.pt/pt/atividades-de-natureza/percursos-pedestres-recomendados/percursos-pedestres-recomendados.html",
   "routes": {
     "PR1": {
@@ -26,8 +26,8 @@
     "PR1.3": {
       "id": "PR1.3",
       "name": "Vereda da Encumeada",
-      "status": "closed",
-      "status_text": "ENCERRADO",
+      "status": "open",
+      "status_text": "ABERTOentre a Boca das Torrinhas e a Encumeada, manter-se-á encerrado",
       "island": "Madeira"
     },
     "PR2": {
