@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-07-14T04:04:19.351942+00:00",
+  "last_updated": "2026-07-15T04:04:49.049008+00:00",
   "source_url": "https://ifcn.madeira.gov.pt/pt/atividades-de-natureza/percursos-pedestres-recomendados/percursos-pedestres-recomendados.html",
   "routes": {
     "PR1": {
@@ -159,8 +159,8 @@
     "PR10": {
       "id": "PR10",
       "name": "Levada do Furado",
-      "status": "closed",
-      "status_text": "ENCERRADO",
+      "status": "open",
+      "status_text": "ABERTO",
       "island": "Madeira"
     },
     "PR11": {
