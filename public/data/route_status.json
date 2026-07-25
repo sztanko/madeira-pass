@@ -1,12 +1,12 @@
 {
-  "last_updated": "2026-07-24T04:07:03.554482+00:00",
+  "last_updated": "2026-07-25T04:05:23.663984+00:00",
   "source_url": "https://ifcn.madeira.gov.pt/pt/atividades-de-natureza/percursos-pedestres-recomendados/percursos-pedestres-recomendados.html",
   "routes": {
     "PR1": {
       "id": "PR1",
       "name": "Vereda do Areeiro",
       "status": "open",
-      "status_text": "ABERTOPercurso transitável desde o Pico do Areeiro até ao Miradouro da Pedra Rija, ao km 1,2",
+      "status_text": "ABERTOPercurso nos dois sentidos entre o Pico do Areeiro e o Miradouro da Pedra Rija; percurso com sentido único entre o Miradouro da Pedra Rija e o Pico Ruivo",
       "island": "Madeira"
     },
     "PR1.1": {
