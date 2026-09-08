@@ -27,9 +27,10 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from process_levadas import (  # noqa: E402
     FOOT_HIGHWAYS, MIN_LEVADA_M, OUTPUT_FILE, PAID, PAID_BUFFER_M,
-    PAID_OVERLAP_FRACTION, PBF, in_madeira, levada_name, run_ogr, tags_of,
-    to_metres,
+    donated_name, in_madeira, levada_name, load_name_donor_relations, run_ogr,
+    tags_of, to_metres, unsafe_reason,
 )
+from shapely.strtree import STRtree  # noqa: E402
 
 failures = []
 
@@ -73,43 +74,65 @@ def main():
     paid_area = unary_union([to_metres(f['geometry']).buffer(PAID_BUFFER_M)
                              for f in paid['features']
                              if to_metres(f['geometry'])])
+    # The paid corridor is cut out of the levada geometry exactly, so this
+    # should be ~0 rather than merely under a threshold. The small allowance
+    # absorbs the buffer's own rounding at the cut ends.
     worst_name, worst_frac = None, 0.0
     for f in features:
         g = to_metres(f['geometry'])
         frac = g.intersection(paid_area).length / g.length
         if frac > worst_frac:
             worst_name, worst_frac = f['properties']['name'], frac
-    check(f'no levada is >{PAID_OVERLAP_FRACTION:.0%} inside a paid PR route',
-          worst_frac <= PAID_OVERLAP_FRACTION,
-          f'(worst: {worst_name} at {worst_frac:.1%})')
+    check('no levada overlaps a paid PR route', worst_frac < 0.02,
+          f'(worst: {worst_name} at {worst_frac:.2%})')
 
     # --- no excluded source segment survived into the output -------------
     # Re-derive what process_levadas.py rejected and confirm none of it is on
     # the map. This is the check that would catch a filter regression, and it
     # does not care what any particular path is called.
-    from process_levadas import unsafe_reason
-
     with tempfile.TemporaryDirectory() as tmp:
         ways = run_ogr('lines', Path(tmp) / 'lines.geojsonl')
+
+    # Mirror the extractor: a way qualifies by its own levada name OR by
+    # running inside a levada-named relation. Both routes have to be checked,
+    # or an unsafe relation member could slip through unexamined.
+    donors = load_name_donor_relations()
+    donor_index = STRtree([corridor for _, corridor in donors])
 
     rejected = []
     for feature in ways:
         tags = tags_of(feature)
-        if not levada_name(tags) or tags.get('highway') not in FOOT_HIGHWAYS:
+        if tags.get('highway') not in FOOT_HIGHWAYS:
             continue
         if not in_madeira(feature['geometry']):
             continue
-        if unsafe_reason(tags):
-            geom = to_metres(feature['geometry'])
-            if geom and geom.length > 0:
-                rejected.append((levada_name(tags), unsafe_reason(tags), geom))
+        reason = unsafe_reason(tags)
+        if not reason:
+            continue
+        geom = to_metres(feature['geometry'])
+        if not geom or geom.length <= 0:
+            continue
+        name = levada_name(tags) or donated_name(geom, donors, donor_index)
+        if name:
+            rejected.append((name, reason, geom))
+
+    # Ways shorter than this can't be judged at a 5 m matching tolerance: a 2 m
+    # stub beside an accepted path reads as "fully covered" no matter what.
+    # They are junction fragments, not walkable sections, so they are not
+    # evidence of a leak. Anything of real length is.
+    MEANINGFUL_M = 25
+    checkable = [r for r in rejected if r[2].length >= MEANINGFUL_M]
+    stubs = len(rejected) - len(checkable)
 
     leaked = []
-    for name, reason, geom in rejected:
+    for name, reason, geom in checkable:
         if geom.intersection(published_area).length / geom.length > 0.5:
-            leaked.append(f'{name} ({reason})')
-    check(f'none of the {len(rejected)} unsafe/shut segments reached the map',
-          not leaked, f'leaked: {leaked[:3]}' if leaked else '')
+            leaked.append(f'{name} ({reason}, {geom.length:.0f} m)')
+    check(f'none of the {len(checkable)} unsafe/shut segments over '
+          f'{MEANINGFUL_M} m reached the map',
+          not leaked,
+          f'leaked: {leaked[:3]}' if leaked else f'({stubs} sub-{MEANINGFUL_M} m '
+          f'stubs not checkable at this tolerance)')
 
     # --- everything published is inside the archipelago ------------------
     check('every levada is inside the Madeira bounding box',

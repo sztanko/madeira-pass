@@ -152,8 +152,16 @@ python3 scripts/process_levadas.py
 ### What counts as a levada
 
 There is no official list — IFCN publishes only the numbered PR routes — so it
-is inferred from OSM. 3,776 ways in Madeira carry "levada" in a name, and they
-split cleanly:
+is inferred from OSM. A footpath qualifies if **it** is named levada, **or** if
+it runs inside a levada-named `route=hiking` relation. The second half matters:
+397 walkable ways (58.9 km) carry no levada name of their own — 359 have no
+name at all — and are only identifiable through their relation. Way
+`1431009622`, tagged nothing but `highway=path` + `access=permissive`, is a
+member of relation `4752386` "Levada Nova da Calheta"; the name lives on the
+relation, so the relation donates it. PR-numbered relations are excluded from
+donating, since their members are the pass-carrying routes.
+
+Ways in Madeira carrying "levada" in a name split cleanly:
 
 | | count | kept? |
 |---|---|---|
@@ -175,15 +183,19 @@ objects. Dropping them loses nothing walkable.
   `hazard` tag, or free text matching closed/dangerous/not-walkable. This
   catches most of Levada do Caldeirão do Inferno and a Levada do Norte water
   tunnel whose description reads *"DO NOT ATTEMPT"*.
-- **Already paid** (226 segments): anything >80% within 20 m of a PR route.
-  This has to be geometric. Levada do Caldeirão Verde, Levada do Furado and
+- **Already paid**: the PR corridor (20 m) is *cut out of* the levada geometry
+  rather than used to drop whole segments. A threshold is not good enough —
+  "Levada da Rocha Vermelha A" sat 47% inside PR 28 while staying under any
+  sane per-segment cutoff. Cutting means no published metre of levada is inside
+  a paid route, which `verify_levadas.py` then asserts directly. Pieces under
+  `MIN_PIECE_M` (20 m) left by the cut are boundary confetti and are dropped.
+  This has to be geometric: Levada do Caldeirão Verde, Levada do Furado and
   Levada das 25 Fontes each have both paid and free stretches, so a name match
   would either delete real free path or — much worse — publish paid path as
   free.
-- **Fragments**: levadas under `MIN_LEVADA_M` (500 m) in total. Drops 75 names
-  worth 13.8 km, and keeps every levada an OSM hiking relation corroborates.
+- **Fragments**: levadas under `MIN_LEVADA_M` (500 m) in total.
 
-Result: **66 levadas, 300.6 km, 0.55 MB.**
+Result: **78 levadas, 354.1 km, 0.64 MB.**
 
 ### Known limitation
 
@@ -223,5 +235,9 @@ survive that.
 
 Checks the published `levadas.geojson`: property shape, no payment-related
 fields, valid geometry, the minimum length, everything inside the archipelago,
-nothing more than 80% inside a paid PR route, and — the important one — that
-none of the segments rejected as unsafe or shut has leaked onto the map.
+no overlap at all with a paid PR route, and — the important one — that none of
+the segments rejected as unsafe or shut has leaked onto the map.
+
+That last check ignores rejected ways under 25 m. At the 5 m matching tolerance
+a 2 m junction stub beside an accepted path always reads as "fully covered",
+so it is not evidence of anything; anything of real length is.

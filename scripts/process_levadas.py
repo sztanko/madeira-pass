@@ -40,6 +40,12 @@ What gets excluded, and why:
                               connectors and mis-named slivers rather than
                               walks.
 
+What gets included that a name check alone would miss: 397 walkable ways
+(58.9 km) carry no levada name themselves but are members of a levada-named
+hiking relation -- 359 of them have no name at all. Way 1431009622, tagged only
+highway=path + access=permissive, is a member of relation 4752386 "Levada Nova
+da Calheta". The name lives on the relation, so the relation donates it.
+
 Requires ogr2ogr (GDAL) on PATH and shapely -- see requirements-levadas.txt.
 This is a manual, occasional job: data/madeira.pbf is committed and nothing
 regenerates it. Refresh instructions are in scripts/README.md.
@@ -58,6 +64,7 @@ from pathlib import Path
 
 from shapely.geometry import LineString, MultiLineString, mapping, shape
 from shapely.ops import linemerge, unary_union
+from shapely.strtree import STRtree
 
 SCRIPT_DIR = Path(__file__).parent
 PROJECT_ROOT = SCRIPT_DIR.parent
@@ -73,9 +80,28 @@ FOOT_HIGHWAYS = {'path', 'footway', 'steps'}
 # relation corroborates.
 MIN_LEVADA_M = 500
 
-# A segment this far inside the paid network is part of a PR route.
+# A way with no levada name of its own belongs to a levada if it runs inside a
+# levada-named hiking relation. Members are usually drawn on the same line as
+# the relation, so the corridor is tight and the containment bar is high --
+# enough to catch member ways, not enough to swallow a path that merely crosses.
+RELATION_BUFFER_M = 10
+RELATION_CONTAINMENT = 0.9
+
+# PR-numbered relations are the pass-carrying routes. Their members must never
+# become free levadas, so they are not allowed to donate a name. The geometric
+# paid subtraction below is the backstop.
+PR_RELATION = re.compile(r'^\s*PR\s*\d', re.IGNORECASE)
+
+# Paid PR route corridor. Levada geometry inside it is cut away exactly rather
+# than dropped by the segment, because a segment can be most-but-not-all inside
+# a PR route: "Levada da Rocha Vermelha A" was 47% inside PR 28 while staying
+# under any sane per-segment threshold. Cutting means no published metre of
+# levada is ever inside a paid route.
 PAID_BUFFER_M = 20
-PAID_OVERLAP_FRACTION = 0.8
+
+# Cutting leaves confetti where a levada grazes a PR route. Anything shorter
+# than this is a boundary artefact, not a piece of path.
+MIN_PIECE_M = 20
 
 # SAC grades we refuse to route people onto. T4 (alpine_hiking) is where
 # alpine experience starts being required; T3 is still ordinary hiking.
@@ -214,6 +240,38 @@ def to_degrees(geom):
     return MultiLineString(parts) if parts else None
 
 
+def load_name_donor_relations():
+    """
+    Levada-named hiking relations that may lend their name to member ways.
+
+    Returns [(name, buffered_geometry_in_metres)], PR routes excluded.
+    """
+    with tempfile.TemporaryDirectory() as tmp:
+        relations = run_ogr('multilinestrings', Path(tmp) / 'rels.geojsonl')
+
+    donors = []
+    for feature in relations:
+        tags = tags_of(feature)
+        name = levada_name(tags)
+        if not name or tags.get('route') != 'hiking':
+            continue
+        if PR_RELATION.match(tags.get('name', '')):
+            continue
+        geom = to_metres(feature['geometry'])
+        if geom and geom.length > 0:
+            donors.append((name, geom.buffer(RELATION_BUFFER_M)))
+    return donors
+
+
+def donated_name(geom, donors, index):
+    """The levada name of the relation this way runs inside, or None."""
+    for i in index.query(geom):
+        corridor = donors[i][1]
+        if geom.intersection(corridor).length / geom.length > RELATION_CONTAINMENT:
+            return donors[i][0]
+    return None
+
+
 def main():
     if not PBF.exists():
         print(f'Missing {PBF}. See scripts/README.md for how to refresh it.')
@@ -224,28 +282,44 @@ def main():
         ways = run_ogr('lines', Path(tmp) / 'lines.geojsonl')
     print(f'  {len(ways)} ways in the extract')
 
-    # 1. levada-named footpaths
+    donors = load_name_donor_relations()
+    donor_index = STRtree([corridor for _, corridor in donors])
+    print(f'  {len(donors)} levada hiking relations can donate a name')
+
+    # 1. levada footpaths -- named as such, or a member of a levada relation
     candidates = []
     skipped = defaultdict(int)
+    from_relation = 0
     for feature in ways:
         tags = tags_of(feature)
-        name = levada_name(tags)
-        if not name:
-            continue
+        own_name = levada_name(tags)
         highway = tags.get('highway')
+
         if highway not in FOOT_HIGHWAYS:
-            skipped['waterway' if tags.get('waterway') else 'not a footpath'] += 1
+            if own_name:
+                skipped['waterway' if tags.get('waterway') else 'not a footpath'] += 1
             continue
         if not in_madeira(feature['geometry']):
-            skipped['outside the archipelago'] += 1
+            if own_name:
+                skipped['outside the archipelago'] += 1
             continue
         reason = unsafe_reason(tags)
         if reason:
-            skipped[f'unsafe/shut ({reason.split(":")[0]})'] += 1
+            if own_name:
+                skipped[f'unsafe/shut ({reason.split(":")[0]})'] += 1
             continue
         geom = to_metres(feature['geometry'])
-        if geom and geom.length > 0:
-            candidates.append((name, tags, geom))
+        if not geom or geom.length <= 0:
+            continue
+
+        name = own_name or donated_name(geom, donors, donor_index)
+        if not name:
+            continue
+        if not own_name:
+            from_relation += 1
+        candidates.append((name, tags, geom))
+
+    print(f'    {from_relation} of them named by their relation, not themselves')
 
     print(f'\n  levada-named footpaths kept: {len(candidates)} '
           f'({sum(g.length for _, _, g in candidates) / 1000:.1f} km)')
@@ -258,13 +332,22 @@ def main():
     paid_area = unary_union([g.buffer(PAID_BUFFER_M) for g in paid_geoms if g])
 
     free = []
-    overlapping = 0
+    fully_paid = 0
+    cut_m = 0.0
     for name, tags, geom in candidates:
-        if geom.intersection(paid_area).length / geom.length > PAID_OVERLAP_FRACTION:
-            overlapping += 1
+        outside = geom.difference(paid_area)
+        if outside.is_empty:
+            fully_paid += 1
             continue
-        free.append((name, tags, geom))
-    print(f'    excluded {overlapping:5}  inside a paid PR route')
+        cut_m += geom.length - outside.length
+        pieces = [g for g in getattr(outside, 'geoms', [outside])
+                  if g.length >= MIN_PIECE_M]
+        if not pieces:
+            fully_paid += 1
+            continue
+        free.append((name, tags, MultiLineString([list(g.coords) for g in pieces])))
+    print(f'    excluded {fully_paid:5}  entirely inside a paid PR route')
+    print(f'    trimmed  {cut_m/1000:5.1f} km  of levada that runs along a paid PR route')
 
     # 3. group by name and drop fragments
     grouped = defaultdict(list)
