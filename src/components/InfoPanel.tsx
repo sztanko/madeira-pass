@@ -1,4 +1,5 @@
 import { InfoPanelState, RouteFeature, RouteStatusData, RouteStatus } from '../types';
+import { statusIdForMapId } from '../utils/routeStatus';
 
 interface InfoPanelProps {
   state: InfoPanelState;
@@ -29,7 +30,8 @@ export default function InfoPanel({
   // Helper function to get status for a route
   const getRouteStatus = (routeId: string): RouteStatus | null => {
     if (!routeStatus) return null;
-    return routeStatus.routes[routeId]?.status || null;
+    // A few map routes are published by IFCN under a different id.
+    return routeStatus.routes[statusIdForMapId(routeId)]?.status || null;
   };
 
   // Helper function to render status badge

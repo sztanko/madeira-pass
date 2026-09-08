@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
-import { RouteCollection, UserLocation, InfoPanelState, RouteStatusData } from '../types';
+import { RouteCollection, UserLocation, InfoPanelState, RouteStatus, RouteStatusData } from '../types';
 import { isInMadeira } from '../utils/geolocation';
+import { mapIdsForStatusId } from '../utils/routeStatus';
 
 // OpenFreeMap "Positron" — pale vector basemap, free, no API key, no rate limit.
 // Attribution (OpenFreeMap / OpenMapTiles / OpenStreetMap) ships inside the style.
@@ -29,18 +30,23 @@ export default function Map({ userLocation, routes, routeStatus, paidRoutes, sel
   const [hasMovedToUser, setHasMovedToUser] = useState(false);
 
   // Extract route IDs by status
-  const closedRoutes = routeStatus
-    ? Object.keys(routeStatus.routes).filter(id => routeStatus.routes[id].status === 'closed')
-    : [];
+  // flatMap through mapIdsForStatusId because a few IFCN ids cover more than
+  // one route on the map; without it their status matches no feature at all.
+  const routeIdsWithStatus = (match: (status: RouteStatus) => boolean) =>
+    routeStatus
+      ? Object.keys(routeStatus.routes)
+          .filter(id => match(routeStatus.routes[id].status))
+          .flatMap(mapIdsForStatusId)
+      : [];
+
+  const closedRoutes = routeIdsWithStatus(status => status === 'closed');
 
   // 'conditional' shares the map colour with 'partially_open': both mean the
   // route is walkable but carries a restriction worth reading. The info panel
   // badge tells them apart.
-  const partiallyOpenRoutes = routeStatus
-    ? Object.keys(routeStatus.routes).filter(id =>
-        routeStatus.routes[id].status === 'partially_open' ||
-        routeStatus.routes[id].status === 'conditional')
-    : [];
+  const partiallyOpenRoutes = routeIdsWithStatus(
+    status => status === 'partially_open' || status === 'conditional'
+  );
 
   // Extract free route IDs (routes that don't require payment)
   const freeRoutes = routes
