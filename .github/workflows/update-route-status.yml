@@ -2,7 +2,9 @@ name: Update Route Status
 
 on:
   schedule:
-    # Run every day at 3 AM UTC
+    # Runs at 3 AM UTC nominally. GitHub queues this heavily -- measured start
+    # times over the past week were 07:34-09:35 UTC. Fine for daily data; don't
+    # read the cron as a guarantee.
     - cron: '0 3 * * *'
   workflow_dispatch:  # Allow manual trigger
 
@@ -26,15 +28,37 @@ jobs:
           cd scripts
           pip install -r requirements.txt
 
+      - name: Test status classification
+        run: python scripts/test_route_status_parse.py
+
+      # Exits 2 when IFCN publishes wording we don't recognise. The file is
+      # still written, so let the run continue and commit the routes we did
+      # understand -- the "Fail on unrecognised status" step below turns it
+      # into a visible failure afterwards.
       - name: Fetch route status
+        id: fetch
+        continue-on-error: true
         run: |
           cd scripts
           python fetch_route_status.py
 
+      # Compare only the routes object. 'last_updated' is a fresh timestamp on
+      # every run, so diffing the whole file committed every single day whether
+      # or not anything had changed -- 320 commits, zero status changes.
       - name: Check for changes
         id: check_changes
         run: |
-          git diff --quiet public/data/route_status.json || echo "changed=true" >> $GITHUB_OUTPUT
+          if ! git show HEAD:public/data/route_status.json > /tmp/previous.json 2>/dev/null; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          if diff -q \
+            <(jq -S '.routes' /tmp/previous.json) \
+            <(jq -S '.routes' public/data/route_status.json) > /dev/null; then
+            echo "No route status changes"
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
 
       - name: Commit and push if changed
         if: steps.check_changes.outputs.changed == 'true'
@@ -44,3 +68,15 @@ jobs:
           git add public/data/route_status.json
           git commit -m "Update route status data 🤖 Automated update from IFCN Madeira website"
           git push
+
+      # Reached on exit 2 (a status string we don't recognise, file still
+      # written and committed above) and on exit 1 (the page didn't load or
+      # its tables moved, nothing written). Both need a human; the fetch step's
+      # log says which.
+      - name: Fail on fetch problem
+        if: steps.fetch.outcome == 'failure'
+        run: |
+          echo "The scraper did not fully succeed - see the 'Fetch route status' step."
+          echo "Unrecognised status: add it to scripts/test_route_status_parse.py."
+          echo "Otherwise: the page failed to load or its layout changed."
+          exit 1

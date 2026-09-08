@@ -33,8 +33,13 @@ export default function Map({ userLocation, routes, routeStatus, paidRoutes, sel
     ? Object.keys(routeStatus.routes).filter(id => routeStatus.routes[id].status === 'closed')
     : [];
 
+  // 'conditional' shares the map colour with 'partially_open': both mean the
+  // route is walkable but carries a restriction worth reading. The info panel
+  // badge tells them apart.
   const partiallyOpenRoutes = routeStatus
-    ? Object.keys(routeStatus.routes).filter(id => routeStatus.routes[id].status === 'partially_open')
+    ? Object.keys(routeStatus.routes).filter(id =>
+        routeStatus.routes[id].status === 'partially_open' ||
+        routeStatus.routes[id].status === 'conditional')
     : [];
 
   // Extract free route IDs (routes that don't require payment)
@@ -124,7 +129,7 @@ export default function Map({ userLocation, routes, routeStatus, paidRoutes, sel
               </div>
               <div style="display: flex; align-items: center; gap: 8px;">
                 <div style="width: 20px; height: 3px; background-color: #fbbf24; border-radius: 2px;"></div>
-                <span>Partially Open</span>
+                <span>Partial / conditional</span>
               </div>
               <div style="display: flex; align-items: center; gap: 8px;">
                 <div style="width: 20px; height: 3px; background-color: #fb923c; border-radius: 2px;"></div>
@@ -259,7 +264,7 @@ export default function Map({ userLocation, routes, routeStatus, paidRoutes, sel
               ['in', ['get', 'id'], ['literal', closedRoutes]],
               '#dc2626', // Closed: red
               ['in', ['get', 'id'], ['literal', partiallyOpenRoutes]],
-              '#fbbf24', // Partially open: yellow/amber
+              '#fbbf24', // Partially open or conditional: yellow/amber
               ['==', ['get', 'id'], selectedRouteId || ''],
               '#fb923c', // Selected: bright orange
               ['in', ['get', 'id'], ['literal', freeRoutes]],

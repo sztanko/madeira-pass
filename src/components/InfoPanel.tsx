@@ -40,6 +40,7 @@ export default function InfoPanel({
       open: { label: 'Open', bgColor: '#d1fae5', color: '#065f46' },
       closed: { label: 'Closed', bgColor: '#fee2e2', color: '#991b1b' },
       partially_open: { label: 'Partial', bgColor: '#fef3c7', color: '#92400e' },
+      conditional: { label: 'Conditional', bgColor: '#fef3c7', color: '#92400e' },
       unknown: { label: 'Unknown', bgColor: '#e5e7eb', color: '#374151' }
     };
 

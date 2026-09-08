@@ -56,7 +56,16 @@ export interface InfoPanelState {
   nearbyRoute?: NearbyRoute;
 }
 
-export type RouteStatus = 'open' | 'closed' | 'partially_open' | 'unknown';
+// 'conditional' is IFCN's CONDICIONADO: the route is walkable but something
+// about it is restricted (a bypass shut, a section made bidirectional).
+// 'unknown' means IFCN published wording the scraper did not recognise --
+// treat it as "go read the source", not as "fine".
+export type RouteStatus =
+  | 'open'
+  | 'closed'
+  | 'partially_open'
+  | 'conditional'
+  | 'unknown';
 
 export interface RouteStatusInfo {
   id: string;
