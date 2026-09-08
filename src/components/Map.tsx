@@ -3,6 +3,14 @@ import maplibregl from 'maplibre-gl';
 import { RouteCollection, UserLocation, InfoPanelState, RouteStatusData } from '../types';
 import { isInMadeira } from '../utils/geolocation';
 
+// OpenFreeMap "Positron" — pale vector basemap, free, no API key, no rate limit.
+// Attribution (OpenFreeMap / OpenMapTiles / OpenStreetMap) ships inside the style.
+const BASEMAP_STYLE_URL = 'https://tiles.openfreemap.org/styles/positron';
+
+// Route lines are inserted below this basemap layer (its first symbol layer) so
+// place names stay legible on top of them.
+const INSERT_BELOW_LAYER = 'waterway_line_label';
+
 interface MapProps {
   userLocation: UserLocation | null;
   routes: RouteCollection | null;
@@ -40,28 +48,11 @@ export default function Map({ userLocation, routes, routeStatus, paidRoutes, sel
 
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
-      style: {
-        version: 8,
-        sources: {
-          'carto-voyager': {
-            type: 'raster',
-            tiles: ['https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png'],
-            tileSize: 256,
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-          }
-        },
-        layers: [
-          {
-            id: 'carto-voyager-layer',
-            type: 'raster',
-            source: 'carto-voyager',
-            minzoom: 0,
-            maxzoom: 22
-          }
-        ]
-      },
+      style: BASEMAP_STYLE_URL,
       center: [-16.95, 32.75], // Center of Madeira
-      zoom: 9.5 // Zoom level to fit the whole archipelago
+      zoom: 9.5, // Zoom level to fit the whole archipelago
+      // Don't re-request tiles just because their cache headers expired
+      refreshExpiredTiles: false
     });
 
     map.addControl(new maplibregl.NavigationControl(), 'top-right');
@@ -235,6 +226,10 @@ export default function Map({ userLocation, routes, routeStatus, paidRoutes, sel
         (map.getSource('routes') as maplibregl.GeoJSONSource).setData(routes);
       } else {
         console.log('Adding new routes source and single layer with data-driven styling');
+
+        // Draw routes underneath the basemap's labels so place names stay readable
+        const beforeId = map.getLayer(INSERT_BELOW_LAYER) ? INSERT_BELOW_LAYER : undefined;
+
         map.addSource('routes', {
           type: 'geojson',
           data: routes
@@ -250,7 +245,7 @@ export default function Map({ userLocation, routes, routeStatus, paidRoutes, sel
             'line-width': 20, // Wide tap target (20px)
             'line-opacity': 0
           }
-        });
+        }, beforeId);
 
         // Visible routes layer with data-driven styling
         map.addLayer({
@@ -282,7 +277,7 @@ export default function Map({ userLocation, routes, routeStatus, paidRoutes, sel
             ],
             'line-opacity': 0.9
           }
-        });
+        }, beforeId);
 
         console.log('Route layer added successfully');
         console.log('Routes source data:', routes.features.length, 'features');

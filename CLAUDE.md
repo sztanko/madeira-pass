@@ -22,7 +22,7 @@ Madeira Pass is a micro web app that tracks your location and warns you if you n
 ## Technical considerations:
 - We don't care about SEO - this is a personal project
 - Website should be done in vanilla Typescript React.
-- We should use MapLibre as mapping library. We use https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png as vector basemap
+- We should use MapLibre as mapping library. The basemap is OpenFreeMap "Positron" (https://tiles.openfreemap.org/styles/positron) — a free, keyless vector style. CARTO's keyless tiles now render an "API key required" watermark, so don't go back to them.
 - Website should be easy to use and have a sleak minimalistic design.
 - project will be open source and hosted on github pages.
 - reminder that all cookies set should expire at midnight.
