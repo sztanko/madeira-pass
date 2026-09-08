@@ -1,0 +1,2 @@
+# Extra deps for process_levadas.py (not needed by the nightly status job)
+shapely>=2.0.0

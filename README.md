@@ -59,6 +59,10 @@ The project includes Python scripts to process route data:
 
 1. Source data: `data/routes.geojson` - all hiking routes in Madeira from OpenStreetMap
 2. Processed data: `public/data/paid_routes.geojson` - only routes requiring payment
+3. Free levadas: `public/data/levadas.geojson` - levada walks that need no pass,
+   extracted from `data/madeira.pbf` by `scripts/process_levadas.py`. Shown as a
+   separate dashed layer; tapping one shows only its name (no pass, no payment
+   link, nothing to mark as paid).
 
 The processing script:
 - Fetches the official list of paid routes from Madeira's government portal

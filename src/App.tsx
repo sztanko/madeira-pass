@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Map from './components/Map';
 import InfoPanel from './components/InfoPanel';
-import { RouteCollection, UserLocation, InfoPanelState, NearbyRoute, RouteStatusData } from './types';
+import { RouteCollection, UserLocation, InfoPanelState, LevadaCollection, NearbyRoute, RouteStatusData } from './types';
 import { getCurrentLocation, watchLocation, clearLocationWatch } from './utils/geolocation';
 import { getPaidRoutes, markRoutePaid, unmarkRoutePaid, isRoutePaid } from './utils/cookies';
 import { distanceToGeometry } from './utils/distance';
@@ -13,6 +13,7 @@ function App() {
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [routes, setRoutes] = useState<RouteCollection | null>(null);
   const [routeStatus, setRouteStatus] = useState<RouteStatusData | null>(null);
+  const [levadas, setLevadas] = useState<LevadaCollection | null>(null);
   const [paidRouteIds, setPaidRouteIds] = useState<string[]>([]);
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null);
   const [infoPanelState, setInfoPanelState] = useState<InfoPanelState>({
@@ -51,6 +52,23 @@ function App() {
         setRouteStatus(data);
       })
       .catch(err => console.error('Error loading route status:', err));
+  }, []);
+
+  // Load free levada walks. Optional extra: a failure here leaves the map
+  // without the levada layer but must not affect the pass-carrying routes.
+  useEffect(() => {
+    fetch('/madeira-pass/data/levadas.geojson')
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`Failed to load levadas: ${res.status} ${res.statusText}`);
+        }
+        return res.json();
+      })
+      .then(data => {
+        console.log('Levadas loaded:', data.features.length);
+        setLevadas(data);
+      })
+      .catch(err => console.error('Error loading levadas:', err));
   }, []);
 
   // Load paid routes from cookies
@@ -182,6 +200,7 @@ function App() {
         userLocation={userLocation}
         routes={routes}
         routeStatus={routeStatus}
+        levadas={levadas}
         paidRoutes={paidRouteIds}
         selectedRouteId={selectedRouteId}
         onRouteClick={handleRouteClick}

@@ -138,3 +138,63 @@ the git history of `route_status.json`. Keep them; they are the regression net.
 python3 scripts/test_route_status_parse.py   # no network needed
 python3 scripts/fetch_route_status.py        # exits 2 on unrecognised status
 ```
+
+## process_levadas.py
+
+Extracts free levada walks from `data/madeira.pbf` into
+`public/data/levadas.geojson` — the separate, non-payable layer on the map.
+
+```bash
+pip install -r requirements-levadas.txt   # shapely; also needs ogr2ogr on PATH
+python3 scripts/process_levadas.py
+```
+
+### What counts as a levada
+
+There is no official list — IFCN publishes only the numbered PR routes — so it
+is inferred from OSM. 3,776 ways in Madeira carry "levada" in a name, and they
+split cleanly:
+
+| | count | kept? |
+|---|---|---|
+| `waterway=drain/ditch/stream` | 2,472 | no — the channel, not a path |
+| `highway=path/footway/steps` | 1,086 | **yes** — the walkable towpath |
+| `highway=residential/tertiary/service/track` | 197 | no — roads named levada |
+| `man_made=pipeline` etc. | 21 | no |
+
+The channels are not a judgement call: 2,325 of them are tagged `width=0.5`, a
+50 cm water conduit, and no way in the extract carries both a `highway` and a
+`waterway` tag — OSM Madeira maps the channel and its towpath as separate
+objects. Dropping them loses nothing walkable.
+
+### What is filtered out, and why
+
+- **Unsafe or shut** (122 segments): `access=no|private`, `foot=no|private`,
+  `disused=yes`, an `abandoned:`/`disused:`/`construction:` prefix, SAC grade
+  T4+ (`alpine_hiking`, `demanding_alpine_hiking`), `trail_visibility=bad`, a
+  `hazard` tag, or free text matching closed/dangerous/not-walkable. This
+  catches most of Levada do Caldeirão do Inferno and a Levada do Norte water
+  tunnel whose description reads *"DO NOT ATTEMPT"*.
+- **Already paid** (226 segments): anything >80% within 20 m of a PR route.
+  This has to be geometric. Levada do Caldeirão Verde, Levada do Furado and
+  Levada das 25 Fontes each have both paid and free stretches, so a name match
+  would either delete real free path or — much worse — publish paid path as
+  free.
+- **Fragments**: levadas under `MIN_LEVADA_M` (500 m) in total. Drops 75 names
+  worth 13.8 km, and keeps every levada an OSM hiking relation corroborates.
+
+Result: **66 levadas, 300.6 km, 0.55 MB.**
+
+### Known limitation
+
+IFCN publishes closure status for PR routes only. **There is no status feed for
+free levadas**, so the only closure signal is OSM tagging, which is
+volunteer-maintained and can be stale. The map popup says so; don't present
+these as officially verified open.
+
+### Refreshing the OSM extract
+
+`data/madeira.pbf` is committed and nothing regenerates it — there is no
+scheduled job, and `data/query.overpass` is not wired to any script. Levada
+geometry barely changes, so refresh by hand when you want to: download a new
+Madeira extract over `data/madeira.pbf`, re-run this script, and commit both.

@@ -31,6 +31,21 @@ export interface RouteCollection extends GeoJSON.FeatureCollection {
   features: RouteFeature[];
 }
 
+// Free levada walks extracted from OSM (scripts/process_levadas.py). These
+// carry no pass and no official status feed -- they exist only as a named line
+// you can tap. Deliberately not a RouteFeature: nothing here is payable.
+export interface LevadaFeature extends GeoJSON.Feature {
+  properties: {
+    name: string;
+    length_km: number;
+    hasTunnel: boolean;
+  };
+}
+
+export interface LevadaCollection extends GeoJSON.FeatureCollection {
+  features: LevadaFeature[];
+}
+
 export interface UserLocation {
   latitude: number;
   longitude: number;
