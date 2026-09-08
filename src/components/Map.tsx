@@ -3,6 +3,12 @@ import maplibregl from 'maplibre-gl';
 import { RouteCollection, UserLocation, InfoPanelState, LevadaCollection, RouteStatus, RouteStatusData } from '../types';
 import { isInMadeira } from '../utils/geolocation';
 import { mapIdsForStatusId } from '../utils/routeStatus';
+import {
+  applyLevadaVisibility,
+  enforceLayerOrder,
+  getLevadasVisible,
+  storeLevadasVisible,
+} from '../utils/mapLayers';
 
 // OpenFreeMap "Positron" — pale vector basemap, free, no API key, no rate limit.
 // Attribution (OpenFreeMap / OpenMapTiles / OpenStreetMap) ships inside the style.
@@ -163,8 +169,10 @@ export default function Map({ userLocation, routes, routeStatus, levadas, paidRo
     class LegendControl {
       private _container?: HTMLDivElement;
       private _isExpanded: boolean = false;
+      private _map?: maplibregl.Map;
 
-      onAdd(_map: maplibregl.Map) {
+      onAdd(map: maplibregl.Map) {
+        this._map = map;
         this._container = document.createElement('div');
         this._container.className = 'maplibregl-ctrl maplibregl-ctrl-group';
         this._container.style.backgroundColor = '#fff';
@@ -206,10 +214,11 @@ export default function Map({ userLocation, routes, routeStatus, levadas, paidRo
                 <div style="width: 20px; height: 3px; background-color: #8b5cf6; border-radius: 2px;"></div>
                 <span>Requires Payment</span>
               </div>
-              <div style="display: flex; align-items: center; gap: 8px;">
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <input type="checkbox" class="levada-toggle" style="margin: 0;" />
                 <div style="width: 20px; height: 0; border-top: 2px dashed ${LEVADA_COLOR};"></div>
                 <span>Levada (free, no pass)</span>
-              </div>
+              </label>
             </div>
           </div>
         `;
@@ -218,6 +227,19 @@ export default function Map({ userLocation, routes, routeStatus, levadas, paidRo
           this._isExpanded = !this._isExpanded;
           legendContent.style.display = this._isExpanded ? 'block' : 'none';
         });
+
+        // Show/hide the free levadas. The layers may not exist yet -- the
+        // levada effect reads the same stored preference when it creates them.
+        const toggle = legendContent.querySelector<HTMLInputElement>('.levada-toggle');
+        if (toggle) {
+          toggle.checked = getLevadasVisible();
+          toggle.addEventListener('change', () => {
+            storeLevadasVisible(toggle.checked);
+            if (this._map) {
+              applyLevadaVisibility(this._map, toggle.checked);
+            }
+          });
+        }
 
         this._container.appendChild(button);
         this._container.appendChild(legendContent);
@@ -347,6 +369,8 @@ export default function Map({ userLocation, routes, routeStatus, levadas, paidRo
           }
         }, beforeId);
 
+        enforceLayerOrder(map, INSERT_BELOW_LAYER);
+
         console.log('Route layer added successfully');
         console.log('Routes source data:', routes.features.length, 'features');
 
@@ -426,11 +450,15 @@ export default function Map({ userLocation, routes, routeStatus, levadas, paidRo
 
       map.addSource('levadas', { type: 'geojson', data: levadas });
 
+      // Start hidden if that is how the user last left it.
+      const visibility = getLevadasVisible() ? 'visible' : 'none';
+
       // Invisible wider layer so a 1px dashed line is still tappable on a phone
       map.addLayer({
         id: 'levadas-hitarea',
         type: 'line',
         source: 'levadas',
+        layout: { visibility },
         paint: {
           'line-color': 'transparent',
           'line-width': 18,
@@ -442,6 +470,7 @@ export default function Map({ userLocation, routes, routeStatus, levadas, paidRo
         id: 'levadas-layer',
         type: 'line',
         source: 'levadas',
+        layout: { visibility },
         paint: {
           'line-color': LEVADA_COLOR,
           'line-width': 1.8,
@@ -449,6 +478,10 @@ export default function Map({ userLocation, routes, routeStatus, levadas, paidRo
           'line-dasharray': [3, 2]
         }
       }, beforeId);
+
+      // beforeId only positions against what already exists; this guarantees
+      // the free levadas end up under the PR routes either way round.
+      enforceLayerOrder(map, INSERT_BELOW_LAYER);
 
       map.on('mouseenter', 'levadas-hitarea', () => {
         map.getCanvas().style.cursor = 'pointer';

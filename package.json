@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "lint": "eslint src --ext ts,tsx"
+    "lint": "eslint src --ext ts,tsx",
+    "test:layers": "node --experimental-strip-types --disable-warning=ExperimentalWarning scripts/test_map_layers.ts"
   },
   "dependencies": {
     "maplibre-gl": "^4.7.1",

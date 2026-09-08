@@ -88,6 +88,13 @@ UNSAFE_TEXT = re.compile(
 LEVADA_NAME = re.compile(r'levada', re.IGNORECASE)
 NAME_KEYS = ('name', 'name:pt', 'alt_name', 'official_name')
 
+# Madeira + Porto Santo + Desertas. The upstream extract is not clipped tightly
+# -- madeira-latest.osm.pbf reaches the Algarve -- and "levada" is an ordinary
+# Portuguese word, so a mainland path could otherwise land on the map. No such
+# path exists today; this is a guard, not a fix.
+LON_MIN, LON_MAX = -17.35, -16.20
+LAT_MIN, LAT_MAX = 32.30, 33.20
+
 # Madeira sits near 32.75N; good enough to do lengths and buffers in metres.
 LAT0 = 32.75
 M_PER_DEG_LON = 111320 * math.cos(math.radians(LAT0))
@@ -127,6 +134,17 @@ def tags_of(feature):
         if value is not None:
             tags[key] = value
     return tags
+
+
+def in_madeira(geometry):
+    """True when the geometry starts inside the archipelago bounding box."""
+    coords = geometry.get('coordinates') or []
+    if geometry.get('type') == 'MultiLineString':
+        coords = coords[0] if coords else []
+    if not coords:
+        return False
+    lon, lat = coords[0][0], coords[0][1]
+    return LON_MIN <= lon <= LON_MAX and LAT_MIN <= lat <= LAT_MAX
 
 
 def levada_name(tags):
@@ -217,6 +235,9 @@ def main():
         highway = tags.get('highway')
         if highway not in FOOT_HIGHWAYS:
             skipped['waterway' if tags.get('waterway') else 'not a footpath'] += 1
+            continue
+        if not in_madeira(feature['geometry']):
+            skipped['outside the archipelago'] += 1
             continue
         reason = unsafe_reason(tags)
         if reason:

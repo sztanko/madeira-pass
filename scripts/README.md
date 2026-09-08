@@ -195,6 +195,33 @@ these as officially verified open.
 ### Refreshing the OSM extract
 
 `data/madeira.pbf` is committed and nothing regenerates it — there is no
-scheduled job, and `data/query.overpass` is not wired to any script. Levada
-geometry barely changes, so refresh by hand when you want to: download a new
-Madeira extract over `data/madeira.pbf`, re-run this script, and commit both.
+scheduled job, and `data/query.overpass` is not wired to any script. Refresh by
+hand:
+
+```bash
+curl -sSL -o data/madeira.pbf \
+  https://download.openstreetmap.fr/extracts/europe/portugal/madeira-latest.osm.pbf
+python3 scripts/process_levadas.py
+python3 scripts/verify_levadas.py     # do not skip this
+```
+
+Geofabrik has no Madeira sub-extract (only whole Portugal), which is why the
+source is OSM-France. That extract is **not clipped tightly** — its geometry
+reaches the Algarve — and *levada* is an ordinary Portuguese word, so the
+script bbox-filters to the archipelago. No mainland path currently qualifies;
+the guard is there so one can't quietly appear.
+
+**Re-run `verify_levadas.py` after every refresh.** OSM retagging changes what
+qualifies, sometimes a lot. Between the original extract and 2026-09-07 the
+entire Caldeirão do Inferno / Pico Ruivo network was retagged from `access=no`
+to `access=permissive` + `foot=yes` — a deliberate, coherent edit meaning the
+paths are considered open — which legitimately moved 6 levadas into the layer.
+The checks are written as rules rather than as expected names precisely so they
+survive that.
+
+## verify_levadas.py
+
+Checks the published `levadas.geojson`: property shape, no payment-related
+fields, valid geometry, the minimum length, everything inside the archipelago,
+nothing more than 80% inside a paid PR route, and — the important one — that
+none of the segments rejected as unsafe or shut has leaked onto the map.
