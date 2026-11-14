@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-11-13T10:47:35.957439+00:00",
+  "last_updated": "2026-11-14T10:02:44.835986+00:00",
   "source_url": "https://ifcn.madeira.gov.pt/pt/atividades-de-natureza/percursos-pedestres-recomendados/percursos-pedestres-recomendados.html",
   "routes": {
     "PR1": {
@@ -40,22 +40,22 @@
     "PR3": {
       "id": "PR3",
       "name": "Vereda do Burro",
-      "status": "open",
-      "status_text": "ABERTO/OPEN",
+      "status": "closed",
+      "status_text": "ENCERRADO/CLOSED",
       "island": "Madeira"
     },
     "PR3.1": {
       "id": "PR3.1",
       "name": "Caminho Real do Monte",
-      "status": "open",
-      "status_text": "ABERTO/OPEN",
+      "status": "closed",
+      "status_text": "ENCERRADO/CLOSED",
       "island": "Madeira"
     },
     "PR4": {
       "id": "PR4",
       "name": "Levada do Barreiro",
-      "status": "partially_open",
-      "status_text": "PARCIALMENTE TRANSITÁVELMAPA",
+      "status": "closed",
+      "status_text": "ENCERRADO/CLOSEDMAPA",
       "island": "Madeira"
     },
     "PR5": {
@@ -174,7 +174,7 @@
       "id": "PR12",
       "name": "Caminho Real da Encumeada",
       "status": "partially_open",
-      "status_text": "ENCERRADO/CLOSED(Transitável desde a Boca da Corridaaté ao km 3,5)",
+      "status_text": "ENCERRADO/CLOSED(Transitável desde a Boca da Corrida até ao km 3,5)",
       "island": "Madeira"
     },
     "PR13": {
