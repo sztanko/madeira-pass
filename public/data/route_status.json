@@ -1,12 +1,12 @@
 {
-  "last_updated": "2026-11-19T11:25:08.418065+00:00",
+  "last_updated": "2026-11-25T12:31:03.349736+00:00",
   "source_url": "https://ifcn.madeira.gov.pt/pt/atividades-de-natureza/percursos-pedestres-recomendados/percursos-pedestres-recomendados.html",
   "routes": {
     "PR1": {
       "id": "PR1",
       "name": "Vereda do Areeiro",
       "status": "open",
-      "status_text": "ABERTO/OPENPercurso nos dois sentidos entre o Pico do Areeiro e o Miradouro da Pedra Rija;",
+      "status_text": "ABERTO/OPENPercurso nos dois sentidos entre o Pico do Areeiro e o Miradouro da Pedra RijaPercurso de sentido único entre o Pico do Areeiro e o Pico Ruivo reaberto a partir de 25/11/2026",
       "island": "Madeira"
     },
     "PR1.1": {
@@ -26,8 +26,8 @@
     "PR1.3": {
       "id": "PR1.3",
       "name": "Vereda da Encumeada",
-      "status": "partially_open",
-      "status_text": "ENCERRADO/CLOSEDentre a Boca das Torrinhas e a Encumeada, manter-se-á encerrado",
+      "status": "closed",
+      "status_text": "ENCERRADO/CLOSED",
       "island": "Madeira"
     },
     "PR2": {
@@ -173,8 +173,8 @@
     "PR12": {
       "id": "PR12",
       "name": "Caminho Real da Encumeada",
-      "status": "partially_open",
-      "status_text": "ENCERRADO/CLOSED(Transitável desde a Boca da Corrida até ao km 3,5)",
+      "status": "closed",
+      "status_text": "ENCERRADO/CLOSED",
       "island": "Madeira"
     },
     "PR13": {
@@ -215,8 +215,8 @@
     "PR17": {
       "id": "PR17",
       "name": "Caminho do Pináculo e Folhadal",
-      "status": "partially_open",
-      "status_text": "ENCERRADO/CLOSED(Transitável entre a EncumeadaFolhadal – Caramujo - Bica da Cana)",
+      "status": "closed",
+      "status_text": "ENCERRADO/CLOSED",
       "island": "Madeira"
     },
     "PR18": {
